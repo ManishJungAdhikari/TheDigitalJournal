@@ -1,0 +1,430 @@
+@page "/calendar"
+
+<div class="calendar-container">
+    <div class="calendar-header">
+        <h1>📅 Calendar View</h1>
+        <div class="calendar-controls">
+            <button class="nav-btn">‹</button>
+            <span class="current-month">December 2025</span>
+            <button class="nav-btn">›</button>
+            <button class="today-btn">Today</button>
+        </div>
+    </div>
+
+    <div class="calendar-content">
+        <div class="calendar-grid-wrapper">
+            <div class="calendar-grid">
+                <div class="calendar-weekday">Sun</div>
+                <div class="calendar-weekday">Mon</div>
+                <div class="calendar-weekday">Tue</div>
+                <div class="calendar-weekday">Wed</div>
+                <div class="calendar-weekday">Thu</div>
+                <div class="calendar-weekday">Fri</div>
+                <div class="calendar-weekday">Sat</div>
+
+                <div class="calendar-day other-month">1</div>
+                <div class="calendar-day other-month">2</div>
+                <div class="calendar-day other-month">3</div>
+                <div class="calendar-day other-month">4</div>
+                <div class="calendar-day other-month">5</div>
+                <div class="calendar-day other-month">6</div>
+                <div class="calendar-day other-month">7</div>
+
+                <div class="calendar-day has-entry" data-mood="happy">
+                    <span class="day-number">8</span>
+                    <span class="mood-indicator">😊</span>
+                </div>
+                <div class="calendar-day has-entry" data-mood="excited">
+                    <span class="day-number">9</span>
+                    <span class="mood-indicator">🎉</span>
+                </div>
+                <div class="calendar-day">10</div>
+                <div class="calendar-day has-entry" data-mood="calm">
+                    <span class="day-number">11</span>
+                    <span class="mood-indicator">😐</span>
+                </div>
+                <div class="calendar-day has-entry" data-mood="grateful">
+                    <span class="day-number">12</span>
+                    <span class="mood-indicator">🙏</span>
+                </div>
+                <div class="calendar-day">13</div>
+                <div class="calendar-day has-entry" data-mood="relaxed">
+                    <span class="day-number">14</span>
+                    <span class="mood-indicator">😌</span>
+                </div>
+
+                <div class="calendar-day has-entry" data-mood="stressed">
+                    <span class="day-number">15</span>
+                    <span class="mood-indicator">😰</span>
+                </div>
+                <div class="calendar-day has-entry" data-mood="happy">
+                    <span class="day-number">16</span>
+                    <span class="mood-indicator">😊</span>
+                </div>
+                <div class="calendar-day">17</div>
+                <div class="calendar-day has-entry" data-mood="thoughtful">
+                    <span class="day-number">18</span>
+                    <span class="mood-indicator">🤔</span>
+                </div>
+                <div class="calendar-day has-entry" data-mood="relaxed">
+                    <span class="day-number">19</span>
+                    <span class="mood-indicator">😌</span>
+                </div>
+                <div class="calendar-day has-entry" data-mood="happy">
+                    <span class="day-number">20</span>
+                    <span class="mood-indicator">😊</span>
+                </div>
+                <div class="calendar-day today">
+                    <span class="day-number">21</span>
+                    <span class="today-label">Today</span>
+                </div>
+
+                <div class="calendar-day">22</div>
+                <div class="calendar-day">23</div>
+                <div class="calendar-day">24</div>
+                <div class="calendar-day">25</div>
+                <div class="calendar-day">26</div>
+                <div class="calendar-day">27</div>
+                <div class="calendar-day">28</div>
+
+                <div class="calendar-day">29</div>
+                <div class="calendar-day">30</div>
+                <div class="calendar-day">31</div>
+                <div class="calendar-day other-month">1</div>
+                <div class="calendar-day other-month">2</div>
+                <div class="calendar-day other-month">3</div>
+                <div class="calendar-day other-month">4</div>
+            </div>
+        </div>
+
+        <div class="entry-preview-panel">
+            <div class="preview-header">
+                <h3>December 20, 2025</h3>
+                <button class="edit-btn">Edit</button>
+            </div>
+
+            <div class="preview-content">
+                <div class="preview-title">Amazing Day at Work</div>
+                
+                <div class="preview-moods">
+                    <span class="mood-badge primary">😊 Happy</span>
+                    <span class="mood-badge">🎉 Excited</span>
+                </div>
+
+                <div class="preview-tags">
+                    <span class="preview-tag">Work</span>
+                    <span class="preview-tag">Career</span>
+                    <span class="preview-tag">Productivity</span>
+                </div>
+
+                <div class="preview-text">
+                    Today was an incredible day at work! I finally completed the project 
+                    I've been working on for the past three weeks. The presentation went 
+                    smoothly, and the team was really impressed with the results...
+                </div>
+
+                <div class="preview-stats">
+                    <span>📝 485 words</span>
+                    <span>⏱️ Written at 9:30 PM</span>
+                </div>
+            </div>
+
+            <div class="legend">
+                <h4>Mood Legend</h4>
+                <div class="legend-items">
+                    <span class="legend-item">
+                        <span class="legend-color positive"></span> Positive
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color neutral"></span> Neutral
+                    </span>
+                    <span class="legend-item">
+                        <span class="legend-color negative"></span> Negative
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .calendar-container {
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    .calendar-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+    }
+
+    .calendar-header h1 {
+        font-size: 1.875rem;
+        color: #1f2937;
+    }
+
+    .calendar-controls {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+
+    .nav-btn {
+        width: 36px;
+        height: 36px;
+        border: 1px solid #e5e7eb;
+        background: white;
+        border-radius: 8px;
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .nav-btn:hover {
+        background: #f3f4f6;
+    }
+
+    .current-month {
+        font-size: 1.125rem;
+        font-weight: 600;
+        color: #1f2937;
+        min-width: 150px;
+        text-align: center;
+    }
+
+    .today-btn {
+        padding: 0.5rem 1rem;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .today-btn:hover {
+        background: #5568d3;
+    }
+
+    .calendar-content {
+        display: grid;
+        grid-template-columns: 1fr 400px;
+        gap: 1.5rem;
+    }
+
+    .calendar-grid-wrapper {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .calendar-grid {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 0.5rem;
+    }
+
+    .calendar-weekday {
+        text-align: center;
+        padding: 1rem;
+        font-weight: 600;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .calendar-day {
+        aspect-ratio: 1;
+        padding: 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s;
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .calendar-day:hover {
+        border-color: #667eea;
+        background: #f5f3ff;
+    }
+
+    .day-number {
+        font-weight: 600;
+        color: #1f2937;
+    }
+
+    .calendar-day.other-month {
+        color: #d1d5db;
+        background: #f9fafb;
+    }
+
+    .calendar-day.today {
+        border: 2px solid #667eea;
+        background: #f5f3ff;
+    }
+
+    .today-label {
+        font-size: 0.625rem;
+        color: #667eea;
+        font-weight: 600;
+        margin-top: 0.25rem;
+    }
+
+    .calendar-day.has-entry {
+        background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+        border-color: #10b981;
+    }
+
+    .calendar-day.has-entry[data-mood="stressed"],
+    .calendar-day.has-entry[data-mood="sad"],
+    .calendar-day.has-entry[data-mood="angry"],
+    .calendar-day.has-entry[data-mood="anxious"] {
+        background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);
+        border-color: #ef4444;
+    }
+
+    .mood-indicator {
+        font-size: 1.25rem;
+        margin-top: 0.25rem;
+    }
+
+    .entry-preview-panel {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        max-height: 700px;
+        overflow-y: auto;
+    }
+
+    .preview-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+    .preview-header h3 {
+        font-size: 1.25rem;
+        color: #1f2937;
+    }
+
+    .edit-btn {
+        padding: 0.5rem 1rem;
+        background: #f3f4f6;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    .preview-title {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #1f2937;
+        margin-bottom: 1rem;
+    }
+
+    .preview-moods {
+        display: flex;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .mood-badge {
+        padding: 0.5rem 0.75rem;
+        background: #f3f4f6;
+        border-radius: 6px;
+        font-size: 0.875rem;
+    }
+
+    .mood-badge.primary {
+        background: #d1fae5;
+        color: #065f46;
+        font-weight: 600;
+    }
+
+    .preview-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 1rem;
+    }
+
+    .preview-tag {
+        padding: 0.375rem 0.75rem;
+        background: #667eea;
+        color: white;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 500;
+    }
+
+    .preview-text {
+        line-height: 1.6;
+        color: #374151;
+        margin-bottom: 1rem;
+    }
+
+    .preview-stats {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 1rem;
+        border-top: 1px solid #e5e7eb;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .legend {
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e5e7eb;
+    }
+
+    .legend h4 {
+        font-size: 0.875rem;
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+    }
+
+    .legend-items {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    .legend-color {
+        width: 16px;
+        height: 16px;
+        border-radius: 4px;
+    }
+
+    .legend-color.positive {
+        background: #10b981;
+    }
+
+    .legend-color.neutral {
+        background: #6b7280;
+    }
+
+    .legend-color.negative {
+        background: #ef4444;
+    }
+</style>

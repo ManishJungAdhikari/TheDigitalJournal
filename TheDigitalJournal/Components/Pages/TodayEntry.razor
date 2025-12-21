@@ -1,0 +1,393 @@
+@page "/today"
+
+<div class="editor-container">
+    <div class="editor-header">
+        <div class="header-info">
+            <h1>Today's Entry</h1>
+            <p class="entry-date">@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn-secondary">Cancel</button>
+            <button class="btn-primary">Save Entry</button>
+        </div>
+    </div>
+
+    <div class="editor-content">
+        <div class="main-editor">
+            <div class="title-section">
+                <input type="text" class="entry-title-input" placeholder="Entry Title" />
+            </div>
+
+            <div class="toolbar">
+                <button class="tool-btn" title="Bold">
+                    <strong>B</strong>
+                </button>
+                <button class="tool-btn" title="Italic">
+                    <em>I</em>
+                </button>
+                <button class="tool-btn" title="Underline">
+                    <u>U</u>
+                </button>
+                <div class="separator"></div>
+                <button class="tool-btn" title="Heading">H1</button>
+                <button class="tool-btn" title="List">☰</button>
+                <button class="tool-btn" title="Link">🔗</button>
+                <div class="separator"></div>
+                <button class="tool-btn" title="Undo">↶</button>
+                <button class="tool-btn" title="Redo">↷</button>
+            </div>
+
+            <div class="text-editor">
+                <textarea 
+                    class="editor-textarea" 
+                    placeholder="Start writing your thoughts...">
+                </textarea>
+            </div>
+
+            <div class="editor-footer">
+                <span class="word-count">0 words</span>
+                <span class="char-count">0 characters</span>
+            </div>
+        </div>
+
+        <div class="sidebar-panel">
+            <div class="panel-section">
+                <h3>Primary Mood <span class="required">*</span></h3>
+                <div class="mood-selector">
+                    <div class="mood-category">
+                        <div class="category-label positive-label">Positive</div>
+                        <div class="mood-options">
+                            <button class="mood-btn">😊 Happy</button>
+                            <button class="mood-btn">🎉 Excited</button>
+                            <button class="mood-btn">😌 Relaxed</button>
+                            <button class="mood-btn">🙏 Grateful</button>
+                            <button class="mood-btn">💪 Confident</button>
+                        </div>
+                    </div>
+
+                    <div class="mood-category">
+                        <div class="category-label neutral-label">Neutral</div>
+                        <div class="mood-options">
+                            <button class="mood-btn">😐 Calm</button>
+                            <button class="mood-btn">🤔 Thoughtful</button>
+                            <button class="mood-btn">🧐 Curious</button>
+                            <button class="mood-btn">🌅 Nostalgic</button>
+                            <button class="mood-btn">😑 Bored</button>
+                        </div>
+                    </div>
+
+                    <div class="mood-category">
+                        <div class="category-label negative-label">Negative</div>
+                        <div class="mood-options">
+                            <button class="mood-btn">😢 Sad</button>
+                            <button class="mood-btn">😠 Angry</button>
+                            <button class="mood-btn">😰 Stressed</button>
+                            <button class="mood-btn">😔 Lonely</button>
+                            <button class="mood-btn">😟 Anxious</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>Secondary Moods (Optional)</h3>
+                <p class="helper-text">Select up to 2 additional moods</p>
+                <div class="selected-moods">
+                    <span class="mood-chip">🎉 Excited ×</span>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <h3>Category</h3>
+                <select class="category-select">
+                    <option>Select a category...</option>
+                    <option>Personal</option>
+                    <option>Work</option>
+                    <option>Health</option>
+                    <option>Relationships</option>
+                    <option>Travel</option>
+                </select>
+            </div>
+
+            <div class="panel-section">
+                <h3>Tags</h3>
+                <input type="text" class="tag-input" placeholder="Add tags..." />
+                <div class="tags-list">
+                    <span class="tag-chip">Work ×</span>
+                    <span class="tag-chip">Productivity ×</span>
+                </div>
+                <div class="suggested-tags">
+                    <span class="suggested-tag">+ Studies</span>
+                    <span class="suggested-tag">+ Fitness</span>
+                    <span class="suggested-tag">+ Reading</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .editor-container {
+        max-width: 1600px;
+        margin: 0 auto;
+        height: calc(100vh - 180px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .editor-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+
+    .editor-header h1 {
+        font-size: 1.875rem;
+        color: #1f2937;
+        margin-bottom: 0.25rem;
+    }
+
+    .entry-date {
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .header-actions {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .btn-secondary, .btn-primary {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-secondary {
+        background: #f3f4f6;
+        color: #374151;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+    }
+
+    .editor-content {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 1.5rem;
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .main-editor {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .title-section {
+        margin-bottom: 1rem;
+    }
+
+    .entry-title-input {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .toolbar {
+        display: flex;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        background: #f9fafb;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+
+    .tool-btn {
+        width: 36px;
+        height: 36px;
+        border: none;
+        background: white;
+        border-radius: 6px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+
+    .tool-btn:hover {
+        background: #e5e7eb;
+    }
+
+    .separator {
+        width: 1px;
+        background: #d1d5db;
+        margin: 0 0.25rem;
+    }
+
+    .text-editor {
+        flex: 1;
+        overflow: hidden;
+    }
+
+    .editor-textarea {
+        width: 100%;
+        height: 100%;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        padding: 1rem;
+        font-size: 1rem;
+        line-height: 1.6;
+        resize: none;
+        font-family: inherit;
+    }
+
+    .editor-footer {
+        display: flex;
+        justify-content: space-between;
+        padding-top: 0.75rem;
+        margin-top: 0.75rem;
+        border-top: 1px solid #e5e7eb;
+        color: #6b7280;
+        font-size: 0.875rem;
+    }
+
+    .sidebar-panel {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        overflow-y: auto;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .panel-section {
+        margin-bottom: 2rem;
+    }
+
+    .panel-section h3 {
+        font-size: 1rem;
+        color: #1f2937;
+        margin-bottom: 1rem;
+    }
+
+    .required {
+        color: #ef4444;
+    }
+
+    .helper-text {
+        font-size: 0.75rem;
+        color: #6b7280;
+        margin-bottom: 0.75rem;
+    }
+
+    .mood-category {
+        margin-bottom: 1rem;
+    }
+
+    .category-label {
+        padding: 0.25rem 0.75rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        display: inline-block;
+        margin-bottom: 0.5rem;
+    }
+
+    .positive-label {
+        background: #d1fae5;
+        color: #065f46;
+    }
+
+    .neutral-label {
+        background: #dbeafe;
+        color: #1e40af;
+    }
+
+    .negative-label {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .mood-options {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .mood-btn {
+        padding: 0.5rem 0.75rem;
+        border: 1px solid #e5e7eb;
+        background: white;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .mood-btn:hover {
+        border-color: #667eea;
+        background: #f5f3ff;
+    }
+
+    .mood-btn.selected {
+        background: #667eea;
+        color: white;
+        border-color: #667eea;
+    }
+
+    .selected-moods, .tags-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+    }
+
+    .mood-chip, .tag-chip {
+        padding: 0.5rem 0.75rem;
+        background: #f3f4f6;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        cursor: pointer;
+    }
+
+    .category-select, .tag-input {
+        width: 100%;
+        padding: 0.625rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 8px;
+        font-size: 0.875rem;
+    }
+
+    .suggested-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-top: 0.75rem;
+    }
+
+    .suggested-tag {
+        padding: 0.375rem 0.625rem;
+        background: #f9fafb;
+        border: 1px dashed #d1d5db;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .suggested-tag:hover {
+        background: #f3f4f6;
+        border-color: #667eea;
+    }
+</style>

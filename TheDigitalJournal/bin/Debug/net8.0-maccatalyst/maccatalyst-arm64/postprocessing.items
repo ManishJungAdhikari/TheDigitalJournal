@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <_PostProcessingItem Include="TheDigitalJournal.app/Contents/MacOS/TheDigitalJournal">
+      <IsAppExtension>false</IsAppExtension>
+      <BCSymbolMapName>TheDigitalJournal.bcsymbolmap</BCSymbolMapName>
+      <NoDSymUtil>true</NoDSymUtil>
+      <dSYMSourcePathExists>false</dSYMSourcePathExists>
+      <NoSymbolStrip>true</NoSymbolStrip>
+      <dSYMInfoPlistRelativePath>TheDigitalJournal.app.dSYM\Contents\Info.plist</dSYMInfoPlistRelativePath>
+      <SymbolFile>/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/obj/Debug/net8.0-maccatalyst/maccatalyst-arm64/mtouch-symbols.list</SymbolFile>
+      <DSymName>TheDigitalJournal.app.dSYM</DSymName>
+      <SourceProjectPath>/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal</SourceProjectPath>
+      <IsXPCService></IsXPCService>
+    </_PostProcessingItem>
+  </ItemGroup>
+</Project>

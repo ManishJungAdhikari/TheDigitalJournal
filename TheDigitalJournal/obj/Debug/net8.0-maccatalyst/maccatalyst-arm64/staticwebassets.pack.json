@@ -1,0 +1,45 @@
+{
+  "Files": [
+    {
+      "Id": "/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/obj/Debug/net8.0-maccatalyst/maccatalyst-arm64/scopedcss/bundle/TheDigitalJournal.styles.css",
+      "PackagePath": "staticwebassets/TheDigitalJournal.styles.css"
+    },
+    {
+      "Id": "/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/wwwroot/css/app.css",
+      "PackagePath": "staticwebassets/css/app.css"
+    },
+    {
+      "Id": "/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/wwwroot/css/bootstrap/bootstrap.min.css",
+      "PackagePath": "staticwebassets/css/bootstrap/bootstrap.min.css"
+    },
+    {
+      "Id": "/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/wwwroot/css/bootstrap/bootstrap.min.css.map",
+      "PackagePath": "staticwebassets/css/bootstrap/bootstrap.min.css.map"
+    },
+    {
+      "Id": "/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/wwwroot/favicon.png",
+      "PackagePath": "staticwebassets/favicon.png"
+    },
+    {
+      "Id": "/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/wwwroot/index.html",
+      "PackagePath": "staticwebassets/index.html"
+    },
+    {
+      "Id": "obj/Debug/net8.0-maccatalyst/maccatalyst-arm64/staticwebassets/msbuild.TheDigitalJournal.Microsoft.AspNetCore.StaticWebAssets.props",
+      "PackagePath": "build\\Microsoft.AspNetCore.StaticWebAssets.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0-maccatalyst/maccatalyst-arm64/staticwebassets/msbuild.build.TheDigitalJournal.props",
+      "PackagePath": "build\\TheDigitalJournal.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0-maccatalyst/maccatalyst-arm64/staticwebassets/msbuild.buildMultiTargeting.TheDigitalJournal.props",
+      "PackagePath": "buildMultiTargeting\\TheDigitalJournal.props"
+    },
+    {
+      "Id": "obj/Debug/net8.0-maccatalyst/maccatalyst-arm64/staticwebassets/msbuild.buildTransitive.TheDigitalJournal.props",
+      "PackagePath": "buildTransitive\\TheDigitalJournal.props"
+    }
+  ],
+  "ElementsToRemove": []
+}
