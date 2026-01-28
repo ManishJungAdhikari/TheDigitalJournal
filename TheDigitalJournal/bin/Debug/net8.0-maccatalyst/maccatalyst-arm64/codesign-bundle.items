@@ -3,7 +3,7 @@
   <ItemGroup>
     <_CodesignBundle Include="TheDigitalJournal.app">
       <CodesignSigningKey>-</CodesignSigningKey>
-      <CodesignEntitlements>/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/obj/Debug/net8.0-maccatalyst/maccatalyst-arm64/Entitlements.xcent</CodesignEntitlements>
+      <CodesignEntitlements>/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/obj/Debug/net8.0-maccatalyst/maccatalyst-arm64/Entitlements.xcent</CodesignEntitlements>
       <CodesignUseSecureTimestamp></CodesignUseSecureTimestamp>
       <CodesignAllocate>/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/codesign_allocate</CodesignAllocate>
       <RequireCodeSigning>False</RequireCodeSigning>
@@ -12,7 +12,7 @@
       <CodesignDisableTimestamp>true</CodesignDisableTimestamp>
       <CodesignKeychain></CodesignKeychain>
       <CodesignUseHardenedRuntime></CodesignUseHardenedRuntime>
-      <SourceProjectPath>/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal</SourceProjectPath>
+      <SourceProjectPath>/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal</SourceProjectPath>
     </_CodesignBundle>
   </ItemGroup>
 </Project>

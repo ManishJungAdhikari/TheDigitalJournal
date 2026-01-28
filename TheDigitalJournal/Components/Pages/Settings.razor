@@ -1,4 +1,18 @@
 @page "/settings"
+@using TheDigitalJournal.Services
+@using TheDigitalJournal.Data
+@using TheDigitalJournal.Utils
+@using Microsoft.Maui.Controls
+@using Microsoft.Maui.ApplicationModel
+@using Microsoft.Maui.Storage
+@using System.IO
+@inject ISecurityService SecurityService
+@inject IThemeService ThemeService
+@inject IExportService ExportService
+@inject IPrintService PrintService
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
+@implements IDisposable
 
 <div class="settings-container">
     <div class="settings-header">
@@ -10,188 +24,80 @@
             <h2>🎨 Appearance</h2>
             <div class="setting-item">
                 <div class="setting-info">
-                    <div class="setting-title">Theme</div>
-                    <div class="setting-description">Choose your preferred color theme</div>
+                    <div class="setting-title">Theme Mode</div>
+                    <div class="setting-description">Switch between Light and Dark professional themes</div>
                 </div>
-                <div class="theme-selector">
-                    <button class="theme-option active">
-                        <span class="theme-icon">☀️</span>
-                        <span>Light</span>
+                <button class="action-btn theme-btn" @onclick="ThemeService.ToggleTheme">
+                    @(ThemeService.IsDarkMode ? "☀️ Switch to Light Mode" : "🌙 Switch to Dark Mode")
+                </button>
+            </div>
+        </div>
+
+        <div class="settings-section">
+            <h2>📤 Data Management</h2>
+            <div class="setting-item">
+                <div class="setting-info">
+                    <div class="setting-title">Export Journal (Compatible)</div>
+                    <div class="setting-description">Generate a report. Select range below or leave empty for all.</div>
+                </div>
+                <div class="export-range-form">
+                    <div class="date-input-group">
+                        <label>From</label>
+                        <input type="date" @bind="_exportStart" class="setting-input-date" />
+                    </div>
+                    <div class="date-input-group">
+                        <label>To</label>
+                        <input type="date" @bind="_exportEnd" class="setting-input-date" />
+                    </div>
+                    <button class="action-btn primary" @onclick="ExportJournalCompatible" disabled="@_isExporting">
+                        @if (_isExporting) { <span>Generating...</span> } else { <span>Print / PDF</span> }
                     </button>
-                    <button class="theme-option">
-                        <span class="theme-icon">🌙</span>
-                        <span>Dark</span>
-                    </button>
-                    <button class="theme-option">
-                        <span class="theme-icon">🎨</span>
-                        <span>Auto</span>
-                    </button>
                 </div>
+            </div>
+            
+            <div class="setting-item" style="margin-top: 1rem; opacity: 0.7;">
+                <div class="setting-info">
+                    <div class="setting-title">Native PDF Export</div>
+                    <div class="setting-description">Direct PDF generation (Restricted Support)</div>
+                </div>
+                <button class="action-btn" @onclick="ExportJournalNative" disabled="@_isExporting">
+                    Native PDF
+                </button>
             </div>
 
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Accent Color</div>
-                    <div class="setting-description">Customize the app's accent color</div>
-                </div>
-                <div class="color-picker">
-                    <div class="color-swatch" style="background: #667eea"></div>
-                    <div class="color-swatch" style="background: #f093fb"></div>
-                    <div class="color-swatch" style="background: #4facfe"></div>
-                    <div class="color-swatch" style="background: #43e97b"></div>
-                    <div class="color-swatch" style="background: #fa709a"></div>
-                </div>
-            </div>
+            @if (!string.IsNullOrEmpty(_exportMessage))
+            {
+                <p class="status-msg @(_isExportError ? "error" : "")">@_exportMessage</p>
+            }
         </div>
 
         <div class="settings-section">
-            <h2>🔒 Security & Privacy</h2>
+            <h2>🔒 Security</h2>
             <div class="setting-item">
                 <div class="setting-info">
-                    <div class="setting-title">Password Protection</div>
-                    <div class="setting-description">Require password to access your journal</div>
+                    <div class="setting-title">Change PIN</div>
+                    <div class="setting-description">Update your 4-digit access PIN</div>
                 </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Change Password</div>
-                    <div class="setting-description">Update your journal password</div>
+                <div class="pin-change-form">
+                    <input type="password" maxlength="4" placeholder="Old" @bind="_oldPin" class="setting-input" />
+                    <input type="password" maxlength="4" placeholder="New" @bind="_newPin" class="setting-input" />
+                    <button class="action-btn primary" @onclick="ChangePin">Update</button>
                 </div>
-                <button class="action-btn">Change</button>
             </div>
-
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">PIN Lock</div>
-                    <div class="setting-description">Use 4-digit PIN for quick access</div>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" />
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Auto-Lock</div>
-                    <div class="setting-description">Lock app after period of inactivity</div>
-                </div>
-                <select class="setting-select">
-                    <option>Never</option>
-                    <option>1 minute</option>
-                    <option selected>5 minutes</option>
-                    <option>15 minutes</option>
-                    <option>30 minutes</option>
-                </select>
-            </div>
+            @if (!string.IsNullOrEmpty(_pinMessage))
+            {
+                <p class="status-msg">@_pinMessage</p>
+            }
         </div>
 
-        <div class="settings-section">
-            <h2>📤 Data & Export</h2>
+        <div class="settings-section danger-zone">
+            <h2>⚠️ Danger Zone</h2>
             <div class="setting-item">
                 <div class="setting-info">
-                    <div class="setting-title">Export Journal</div>
-                    <div class="setting-description">Export entries as PDF by date range</div>
+                    <div class="setting-title">Factory Reset</div>
+                    <div class="setting-description">Permanently delete ALL data and PIN</div>
                 </div>
-                <button class="action-btn primary">Export</button>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Backup Database</div>
-                    <div class="setting-description">Create a backup of your journal database</div>
-                </div>
-                <button class="action-btn">Backup</button>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Restore Database</div>
-                    <div class="setting-description">Restore from a previous backup</div>
-                </div>
-                <button class="action-btn">Restore</button>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Storage Location</div>
-                    <div class="setting-description">Current: ~/Documents/DailyJournal</div>
-                </div>
-                <button class="action-btn">Change</button>
-            </div>
-        </div>
-
-        <div class="settings-section">
-            <h2>🔔 Notifications & Reminders</h2>
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Daily Reminder</div>
-                    <div class="setting-description">Remind me to write my daily entry</div>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Reminder Time</div>
-                    <div class="setting-description">When should we remind you?</div>
-                </div>
-                <input type="time" class="time-input" value="21:00" />
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Streak Alerts</div>
-                    <div class="setting-description">Notify when streak is at risk</div>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-        </div>
-
-        <div class="settings-section">
-            <h2>✍️ Writing Preferences</h2>
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Default Editor</div>
-                    <div class="setting-description">Choose your preferred editor format</div>
-                </div>
-                <select class="setting-select">
-                    <option>Rich Text</option>
-                    <option selected>Markdown</option>
-                </select>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Auto-Save</div>
-                    <div class="setting-description">Automatically save as you type</div>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Word Count Display</div>
-                    <div class="setting-description">Show live word count while writing</div>
-                </div>
-                <label class="toggle-switch">
-                    <input type="checkbox" checked />
-                    <span class="toggle-slider"></span>
-                </label>
+                <button class="action-btn danger" @onclick="ResetApp">Delete All</button>
             </div>
         </div>
 
@@ -199,262 +105,184 @@
             <h2>ℹ️ About</h2>
             <div class="about-info">
                 <div class="app-logo">📔</div>
-                <div class="app-name">Daily Journal</div>
+                <div class="app-name">The Digital Journal</div>
                 <div class="app-version">Version 1.0.0</div>
-                <div class="app-description">
-                    A secure, feature-rich journaling application for daily reflections
-                </div>
-            </div>
-        </div>
-
-        <div class="settings-section danger-zone">
-            <h2>⚠️ Danger Zone</h2>
-            <div class="setting-item">
-                <div class="setting-info">
-                    <div class="setting-title">Clear All Data</div>
-                    <div class="setting-description">Permanently delete all journal entries</div>
-                </div>
-                <button class="action-btn danger">Delete All</button>
             </div>
         </div>
     </div>
 </div>
 
+@code {
+    private string _oldPin = "";
+    private string _newPin = "";
+    private string _pinMessage = "";
+    private string _exportMessage = "";
+    private bool _isExportError = false;
+    private bool _isExporting = false;
+    
+    private DateTime? _exportStart;
+    private DateTime? _exportEnd;
+
+    protected override void OnInitialized()
+    {
+        ThemeService.OnThemeChanged += HandleThemeChanged;
+    }
+
+    private void HandleThemeChanged() => InvokeAsync(StateHasChanged);
+
+    public void Dispose()
+    {
+        ThemeService.OnThemeChanged -= HandleThemeChanged;
+    }
+
+    private async Task ExportJournalCompatible()
+    {
+        if (_isExporting) return;
+        _isExporting = true;
+        _exportMessage = "";
+        
+        try
+        {
+            var html = await ExportService.ExportJournalToHtmlAsync(_exportStart, _exportEnd);
+            PrintService.PrintHtml(html);
+            _exportMessage = "Export generated.";
+        }
+        catch (Exception ex)
+        {
+            _isExportError = true;
+            _exportMessage = "Export failed: " + ex.Message;
+        }
+        finally
+        {
+            _isExporting = false;
+        }
+    }
+
+    private async Task ExportJournalNative()
+    {
+        if (_isExporting) return;
+        _isExporting = true;
+        _exportMessage = "";
+        _isExportError = false;
+        
+        try
+        {
+            var filePath = await ExportService.ExportJournalToPdfAsync();
+            
+            if (Application.Current?.MainPage != null && !string.IsNullOrEmpty(filePath))
+            {
+                _exportMessage = "Journal exported successfully!";
+                var open = await Application.Current.MainPage.DisplayAlert("Export Success", "Journal exported successfully.", "Open PDF", "OK");
+                if (open)
+                {
+                    await Launcher.Default.OpenAsync(new OpenFileRequest
+                    {
+                        Title = "Journal Export",
+                        File = new ReadOnlyFile(filePath)
+                    });
+                }
+            }
+        }
+        catch (Exception)
+        {
+            _isExportError = true;
+            _exportMessage = "Native export not supported on this platform.";
+            if (Application.Current?.MainPage != null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Platform Limitation", "The native PDF library (QuestPDF) does not support this specific device runtime. Please use the 'Compatible' export option instead.", "OK");
+            }
+        }
+        finally
+        {
+            _isExporting = false;
+        }
+    }
+
+    private async Task ChangePin()
+    {
+        try 
+        {
+            if (string.IsNullOrWhiteSpace(_oldPin) || string.IsNullOrWhiteSpace(_newPin) || _oldPin.Length != 4 || _newPin.Length != 4)
+            {
+                _pinMessage = "PIN must be 4 digits.";
+                return;
+            }
+
+            var success = await SecurityService.ChangePinAsync(_oldPin, _newPin);
+            if (success)
+            {
+                _pinMessage = "PIN updated successfully!";
+                _oldPin = "";
+                _newPin = "";
+            }
+            else
+            {
+                _pinMessage = "Incorrect old PIN.";
+            }
+        }
+        catch (Exception)
+        {
+            _pinMessage = "Error: Failed to update PIN.";
+        }
+    }
+
+    private async Task ResetApp()
+    {
+        try 
+        {
+            if (Application.Current?.MainPage != null)
+            {
+                var confirmed = await Application.Current.MainPage.DisplayAlert("DANGER", "This will delete EVERYTHING. Are you sure?", "Yes, Reset", "Cancel");
+                if (confirmed)
+                {
+                    var dbPath = DbConstants.DatabasePath;
+                    if (File.Exists(dbPath))
+                    {
+                        File.Delete(dbPath);
+                    }
+                    SecurityService.Logout();
+                    Navigation.NavigateTo("login", forceLoad: true);
+                }
+            }
+        }
+        catch (Exception)
+        {
+            if (Application.Current?.MainPage != null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Error", "Reset failed.", "OK");
+            }
+        }
+    }
+}
+
 <style>
-    .settings-container {
-        max-width: 900px;
-        margin: 0 auto;
-    }
+    .settings-container { max-width: 800px; margin: 0 auto; padding: 20px; color: var(--text-main); }
+    .settings-header { margin-bottom: 2rem; }
+    .settings-content { display: flex; flex-direction: column; gap: 1.5rem; }
+    .settings-section { background: var(--bg-card); border-radius: 12px; padding: 1.5rem; border: 1px solid var(--border); box-shadow: var(--shadow); }
+    .settings-section h2 { font-size: 1.25rem; margin-bottom: 1rem; border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; color: var(--text-main); }
+    .setting-item { display: flex; justify-content: space-between; align-items: center; gap: 1rem; }
+    .setting-info { flex: 1; }
+    .setting-title { font-weight: 600; color: var(--text-main); }
+    .setting-description { font-size: 0.875rem; color: var(--text-muted); }
+    
+    .export-range-form { display: flex; gap: 1rem; align-items: flex-end; margin-top: 1rem; flex-wrap: wrap; }
+    .date-input-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .date-input-group label { font-size: 0.7rem; text-transform: uppercase; color: var(--text-muted); font-weight: 700; }
+    .setting-input-date { padding: 0.4rem !important; font-size: 0.8rem !important; width: 140px; }
 
-    .settings-header {
-        margin-bottom: 2rem;
-    }
-
-    .settings-header h1 {
-        font-size: 1.875rem;
-        color: #1f2937;
-    }
-
-    .settings-content {
-        display: flex;
-        flex-direction: column;
-        gap: 2rem;
-    }
-
-    .settings-section {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .settings-section h2 {
-        font-size: 1.25rem;
-        color: #1f2937;
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.75rem;
-        border-bottom: 2px solid #f3f4f6;
-    }
-
-    .setting-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 1.25rem 0;
-        border-bottom: 1px solid #f3f4f6;
-    }
-
-    .setting-item:last-child {
-        border-bottom: none;
-        padding-bottom: 0;
-    }
-
-    .setting-info {
-        flex: 1;
-    }
-
-    .setting-title {
-        font-size: 1rem;
-        font-weight: 600;
-        color: #1f2937;
-        margin-bottom: 0.25rem;
-    }
-
-    .setting-description {
-        font-size: 0.875rem;
-        color: #6b7280;
-    }
-
-    .theme-selector {
-        display: flex;
-        gap: 0.75rem;
-    }
-
-    .theme-option {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 0.5rem;
-        padding: 1rem;
-        border: 2px solid #e5e7eb;
-        background: white;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-        min-width: 80px;
-    }
-
-    .theme-option:hover {
-        border-color: #667eea;
-    }
-
-    .theme-option.active {
-        border-color: #667eea;
-        background: #f5f3ff;
-    }
-
-    .theme-icon {
-        font-size: 1.5rem;
-    }
-
-    .color-picker {
-        display: flex;
-        gap: 0.75rem;
-    }
-
-    .color-swatch {
-        width: 40px;
-        height: 40px;
-        border-radius: 8px;
-        cursor: pointer;
-        transition: all 0.2s;
-        border: 3px solid transparent;
-    }
-
-    .color-swatch:hover {
-        transform: scale(1.1);
-        border-color: #1f2937;
-    }
-
-    .toggle-switch {
-        position: relative;
-        width: 52px;
-        height: 28px;
-    }
-
-    .toggle-switch input {
-        opacity: 0;
-        width: 0;
-        height: 0;
-    }
-
-    .toggle-slider {
-        position: absolute;
-        cursor: pointer;
-        inset: 0;
-        background: #d1d5db;
-        border-radius: 28px;
-        transition: 0.3s;
-    }
-
-    .toggle-slider:before {
-        position: absolute;
-        content: "";
-        height: 22px;
-        width: 22px;
-        left: 3px;
-        bottom: 3px;
-        background: white;
-        border-radius: 50%;
-        transition: 0.3s;
-    }
-
-    .toggle-switch input:checked + .toggle-slider {
-        background: #667eea;
-    }
-
-    .toggle-switch input:checked + .toggle-slider:before {
-        transform: translateX(24px);
-    }
-
-    .action-btn {
-        padding: 0.625rem 1.25rem;
-        border: 1px solid #e5e7eb;
-        background: white;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .action-btn:hover {
-        background: #f3f4f6;
-    }
-
-    .action-btn.primary {
-        background: #667eea;
-        color: white;
-        border-color: #667eea;
-    }
-
-    .action-btn.primary:hover {
-        background: #5568d3;
-    }
-
-    .action-btn.danger {
-        background: #fee2e2;
-        color: #991b1b;
-        border-color: #fecaca;
-    }
-
-    .action-btn.danger:hover {
-        background: #fecaca;
-    }
-
-    .setting-select, .time-input {
-        padding: 0.625rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 0.875rem;
-        background: white;
-    }
-
-    .about-info {
-        text-align: center;
-        padding: 2rem 0;
-    }
-
-    .app-logo {
-        font-size: 4rem;
-        margin-bottom: 1rem;
-    }
-
-    .app-name {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 0.5rem;
-    }
-
-    .app-version {
-        color: #6b7280;
-        font-size: 0.875rem;
-        margin-bottom: 1rem;
-    }
-
-    .app-description {
-        color: #6b7280;
-        line-height: 1.6;
-        max-width: 500px;
-        margin: 0 auto;
-    }
-
-    .danger-zone {
-        border: 2px solid #fee2e2;
-    }
-
-    .danger-zone h2 {
-        color: #991b1b;
-        border-bottom-color: #fee2e2;
-    }
+    .pin-change-form { display: flex; gap: 0.5rem; }
+    .setting-input { width: 80px; padding: 0.5rem; border: 1px solid var(--border); border-radius: 6px; text-align: center; background: var(--bg-input); color: var(--text-main); }
+    .action-btn { padding: 0.5rem 1.5rem; border-radius: 100px; border: 1px solid var(--border); background: var(--bg-card); cursor: pointer; font-weight: 600; color: var(--text-main); transition: 0.2s; }
+    .action-btn:hover { border-color: var(--primary); color: var(--primary); }
+    .action-btn.primary { background: var(--primary); color: white; border: none; }
+    .action-btn.primary:disabled { background: var(--text-muted); cursor: not-allowed; }
+    .action-btn.danger { background: #fee2e2; color: #b91c1c; border-color: #fecaca; }
+    .status-msg { margin-top: 1rem; font-size: 0.875rem; color: var(--primary); font-weight: 600; }
+    .status-msg.error { color: #ef4444; }
+    .danger-zone { border: 1px solid #fee2e2; }
+    .about-info { text-align: center; padding: 1rem; }
+    .app-logo { font-size: 3rem; margin-bottom: 0.5rem; }
+    .app-name { font-weight: 700; color: var(--text-main); }
+    .app-version { color: var(--text-muted); font-size: 0.8rem; }
 </style>

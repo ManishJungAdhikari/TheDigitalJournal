@@ -24,7 +24,68 @@
     </div>
 
     <script src="_framework/blazor.webview.js" autostart="false"></script>
+    <script>
+        window.editorInterop = {
+            insertText: function (elementId, prefix, suffix) {
+                const el = document.getElementById(elementId);
+                if (!el) return;
 
+                const start = el.selectionStart;
+                const end = el.selectionEnd;
+                const text = el.value;
+                const before = text.substring(0, start);
+                const selection = text.substring(start, end);
+                const after = text.substring(end);
+
+                el.value = before + prefix + selection + suffix + after;
+                
+                el.focus();
+                if (start === end) {
+                    const pos = start + prefix.length;
+                    el.setSelectionRange(pos, pos);
+                } else {
+                    const newPos = start + prefix.length + selection.length + suffix.length;
+                    el.setSelectionRange(newPos, newPos);
+                }
+
+                const event = new Event('input', { bubbles: true });
+                el.dispatchEvent(event);
+            },
+            printJournal: function (htmlContent) {
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                document.body.appendChild(iframe);
+
+                const doc = iframe.contentWindow.document;
+                doc.open();
+                doc.write('<html><head><title>Journal Export</title>');
+                doc.write('<style>body{font-family:sans-serif;padding:20px;line-height:1.6;}.entry{margin-bottom:30px;border-bottom:1px solid #eee;padding-bottom:20px;}.date{font-weight:bold;color:#667eea;}.mood{float:right;}.title{font-size:1.5rem;margin:10px 0;}.tags{font-style:italic;color:#666;font-size:0.9rem;}</style>');
+                doc.write('</head><body>');
+                doc.write(htmlContent);
+                doc.write('</body></html>');
+                doc.close();
+
+                iframe.contentWindow.onload = function() {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                    setTimeout(() => { if(document.body.contains(iframe)) document.body.removeChild(iframe); }, 1000);
+                };
+                
+                setTimeout(() => {
+                    if (document.body.contains(iframe)) {
+                        iframe.contentWindow.focus();
+                        iframe.contentWindow.print();
+                        setTimeout(() => document.body.removeChild(iframe), 1000);
+                    }
+                }, 500);
+            }
+        };
+    </script>
 </body>
 
 </html>

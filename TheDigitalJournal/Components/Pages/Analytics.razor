@@ -1,556 +1,276 @@
 @page "/analytics"
+@using TheDigitalJournal.ViewModels
+@inject AnalyticsViewModel ViewModel
 
 <div class="analytics-container">
     <div class="analytics-header">
-        <h1>📊 Analytics & Insights</h1>
-        <div class="date-range-selector">
-            <select class="range-select">
-                <option>Last 7 Days</option>
-                <option>Last 30 Days</option>
-                <option selected>Last 3 Months</option>
-                <option>Last 6 Months</option>
-                <option>Last Year</option>
-                <option>All Time</option>
-                <option>Custom Range</option>
-            </select>
+        <div class="header-main">
+            <h1>📊 Analytics & Insights</h1>
+            <p class="subtitle">Personal growth and emotional trends</p>
+        </div>
+        
+        <div class="analytics-filters card">
+            <div class="filter-group">
+                <label>From</label>
+                <input type="date" @bind="_filterStart" class="filter-date" />
+            </div>
+            <div class="filter-group">
+                <label>To</label>
+                <input type="date" @bind="_filterEnd" class="filter-date" />
+            </div>
+            <button class="apply-btn" @onclick="ReloadAnalytics">Update Range</button>
+        </div>
+    </div>
+
+    <div class="stats-summary-row">
+        <div class="stat-summary-card card">
+            <span class="label">Most Frequent Mood</span>
+            <div class="value">@ViewModel.MostFrequentMood</div>
+        </div>
+        <div class="stat-summary-card card">
+            <span class="label">Avg. Words / Entry</span>
+            <div class="value">@ViewModel.AvgWordsPerEntry</div>
+        </div>
+        <div class="stat-summary-card card">
+            <span class="label">Filtered Entries</span>
+            <div class="value">@ViewModel.TotalEntries</div>
         </div>
     </div>
 
     <div class="analytics-grid">
-        <div class="analytics-card large">
+        @* Mood Distribution *@
+        <div class="analytics-card large card">
             <h3>📈 Mood Distribution</h3>
             <div class="chart-container">
-                <div class="pie-chart">
-                    <div class="pie-slice positive" style="--percentage: 60"></div>
-                    <div class="pie-slice neutral" style="--percentage: 25"></div>
-                    <div class="pie-slice negative" style="--percentage: 15"></div>
-                </div>
+                @if (!string.IsNullOrEmpty(ViewModel.MoodChartData))
+                {
+                    <div class="pie-chart" style="background: @ViewModel.MoodChartData"></div>
+                }
                 <div class="chart-legend">
-                    <div class="legend-item">
-                        <span class="legend-color positive-bg"></span>
-                        <span>Positive: 60% (87 entries)</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color neutral-bg"></span>
-                        <span>Neutral: 25% (36 entries)</span>
-                    </div>
-                    <div class="legend-item">
-                        <span class="legend-color negative-bg"></span>
-                        <span>Negative: 15% (22 entries)</span>
-                    </div>
+                    @{ int colorIdx = 0; var legendColors = new[] { "#10b981", "#667eea", "#ef4444", "#f59e0b", "#6b7280" }; }
+                    @foreach (var mood in ViewModel.MoodDistribution)
+                    {
+                        <div class="legend-item">
+                            <span class="legend-color" style="background-color: @legendColors[colorIdx % legendColors.Length]"></span>
+                            <span class="legend-text">@mood.Key: @mood.Value entries</span>
+                        </div>
+                        colorIdx++;
+                    }
+                    @if (!ViewModel.MoodDistribution.Any())
+                    {
+                        <p class="empty-msg">No mood data recorded.</p>
+                    }
                 </div>
             </div>
         </div>
 
-        <div class="analytics-card">
-            <h3>😊 Most Frequent Mood</h3>
-            <div class="mood-stats">
-                <div class="mood-display">
-                    <span class="big-emoji">😊</span>
-                    <div class="mood-name">Happy</div>
-                    <div class="mood-count">42 entries</div>
-                </div>
-                <div class="top-moods">
-                    <div class="mini-mood">🎉 Excited - 28</div>
-                    <div class="mini-mood">😌 Relaxed - 24</div>
-                    <div class="mini-mood">🙏 Grateful - 19</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="analytics-card">
+        @* Streak & Missed Days *@
+        <div class="analytics-card card">
             <h3>🔥 Streak Information</h3>
             <div class="streak-stats">
                 <div class="streak-item">
                     <div class="streak-label">Current Streak</div>
-                    <div class="streak-value primary">12 days</div>
+                    <div class="streak-value primary">@ViewModel.CurrentStreak days</div>
                 </div>
                 <div class="streak-item">
                     <div class="streak-label">Longest Streak</div>
-                    <div class="streak-value">28 days</div>
+                    <div class="streak-value">@ViewModel.LongestStreak days</div>
                 </div>
-                <div class="streak-item">
-                    <div class="streak-label">Missed Days</div>
-                    <div class="streak-value missed">8 days</div>
+                <div class="missed-days-section">
+                    <h4>Missed Days (In Window)</h4>
+                    <div class="missed-days-list">
+                        @if (ViewModel.MissedDays.Any())
+                        {
+                            var daysToShow = _showAllMissed ? ViewModel.MissedDays : ViewModel.MissedDays.Take(8);
+                            @foreach (var day in daysToShow)
+                            {
+                                <span class="missed-day-tag">@day.ToString("MMM dd")</span>
+                            }
+                            @if (ViewModel.MissedDays.Count > 8)
+                            {
+                                <button class="see-more-link" @onclick="ToggleMissed">
+                                    @(_showAllMissed ? "Show less" : $"+{ViewModel.MissedDays.Count - 8} more...")
+                                </button>
+                            }
+                        }
+                        else
+                        {
+                            <span class="all-captured">No days missed! 🎉</span>
+                        }
+                    </div>
                 </div>
-                <div class="progress-bar">
-                    <div class="progress-fill" style="width: 85%"></div>
-                </div>
-                <div class="progress-label">85% completion rate</div>
             </div>
         </div>
 
-        <div class="analytics-card large">
+        @* 3. Most Used Tags - VERTICAL BAR CHART *@
+        <div class="analytics-card large card">
             <h3>🏷️ Most Used Tags</h3>
-            <div class="tag-chart">
-                <div class="tag-bar-item">
-                    <div class="tag-name">Work</div>
-                    <div class="tag-bar">
-                        <div class="bar-fill" style="width: 85%">45</div>
-                    </div>
-                </div>
-                <div class="tag-bar-item">
-                    <div class="tag-name">Health</div>
-                    <div class="tag-bar">
-                        <div class="bar-fill" style="width: 70%">38</div>
-                    </div>
-                </div>
-                <div class="tag-bar-item">
-                    <div class="tag-name">Studies</div>
-                    <div class="tag-bar">
-                        <div class="bar-fill" style="width: 65%">34</div>
-                    </div>
-                </div>
-                <div class="tag-bar-item">
-                    <div class="tag-name">Fitness</div>
-                    <div class="tag-bar">
-                        <div class="bar-fill" style="width: 55%">29</div>
-                    </div>
-                </div>
-                <div class="tag-bar-item">
-                    <div class="tag-name">Travel</div>
-                    <div class="tag-bar">
-                        <div class="bar-fill" style="width: 40%">21</div>
-                    </div>
-                </div>
+            <div class="tag-bar-chart-vertical">
+                @if (ViewModel.TopTags.Any())
+                {
+                    var maxCount = ViewModel.TopTags.Max(t => t.Count);
+                    @foreach (var tag in ViewModel.TopTags.Take(8))
+                    {
+                        <div class="v-bar-item">
+                            <div class="v-bar-container">
+                                @{ var barHeight = maxCount > 0 ? (tag.Count * 100 / maxCount) : 0; }
+                                <div class="v-bar" style="height: @barHeight%">
+                                    <span class="v-bar-value">@tag.Count</span>
+                                </div>
+                            </div>
+                            <div class="v-bar-label">#@tag.Name</div>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <p class="empty-msg">No tag usage data yet.</p>
+                }
             </div>
         </div>
 
-        <div class="analytics-card">
-            <h3>📑 Tag Breakdown</h3>
+        @* 4. Tag Breakdown (Horizontal %) *@
+        <div class="analytics-card card">
+            <h3>📊 Tag Breakdown</h3>
+            <div class="tag-chart-mini">
+                @foreach (var tag in ViewModel.TopTags.Take(5))
+                {
+                    <div class="mini-tag-item">
+                        <div class="mini-tag-info">
+                            <span class="tag-name">#@tag.Name</span>
+                            <span class="tag-percent">@tag.Percentage%</span>
+                        </div>
+                        <div class="mini-tag-bar"><div class="mini-fill" style="width: @tag.Percentage%"></div></div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        @* Category Distribution *@
+        <div class="analytics-card card">
+            <h3>📑 Category Distribution</h3>
             <div class="category-breakdown">
-                <div class="category-item">
-                    <div class="category-header">
-                        <span>Work & Career</span>
-                        <span class="percentage">35%</span>
+                @foreach (var cat in ViewModel.CategoryDistribution)
+                {
+                    <div class="category-item">
+                        <div class="category-header">
+                            <span class="category-name">@cat.Name</span>
+                            <span class="percentage">@cat.Percentage%</span>
+                        </div>
+                        <div class="category-bar"><div class="category-fill" style="width: @cat.Percentage%"></div></div>
                     </div>
-                    <div class="category-bar">
-                        <div class="category-fill" style="width: 35%"></div>
-                    </div>
-                </div>
-                <div class="category-item">
-                    <div class="category-header">
-                        <span>Health & Fitness</span>
-                        <span class="percentage">28%</span>
-                    </div>
-                    <div class="category-bar">
-                        <div class="category-fill" style="width: 28%"></div>
-                    </div>
-                </div>
-                <div class="category-item">
-                    <div class="category-header">
-                        <span>Personal Growth</span>
-                        <span class="percentage">22%</span>
-                    </div>
-                    <div class="category-bar">
-                        <div class="category-fill" style="width: 22%"></div>
-                    </div>
-                </div>
-                <div class="category-item">
-                    <div class="category-header">
-                        <span>Relationships</span>
-                        <span class="percentage">15%</span>
-                    </div>
-                    <div class="category-bar">
-                        <div class="category-fill" style="width: 15%"></div>
-                    </div>
-                </div>
+                }
             </div>
         </div>
 
-        <div class="analytics-card large">
+        @* Word Count Trends *@
+        <div class="analytics-card large card">
             <h3>✍️ Word Count Trends</h3>
-            <div class="word-count-stats">
-                <div class="stat-box">
-                    <div class="stat-value">324</div>
-                    <div class="stat-label">Avg words/entry</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value">750</div>
-                    <div class="stat-label">Longest entry</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value">47,088</div>
-                    <div class="stat-label">Total words</div>
-                </div>
-            </div>
-            <div class="line-chart">
-                <div class="chart-line">
-                    <div class="data-point" style="left: 10%; bottom: 40%"></div>
-                    <div class="data-point" style="left: 25%; bottom: 55%"></div>
-                    <div class="data-point" style="left: 40%; bottom: 45%"></div>
-                    <div class="data-point" style="left: 55%; bottom: 70%"></div>
-                    <div class="data-point" style="left: 70%; bottom: 65%"></div>
-                    <div class="data-point" style="left: 85%; bottom: 80%"></div>
-                </div>
-            </div>
-        </div>
-
-        <div class="analytics-card">
-            <h3>📅 Writing Patterns</h3>
-            <div class="pattern-stats">
-                <div class="pattern-item">
-                    <span class="pattern-icon">🌅</span>
-                    <div>
-                        <div class="pattern-label">Most Active Time</div>
-                        <div class="pattern-value">9:00 PM - 11:00 PM</div>
+            <div class="trend-chart">
+                @foreach (var trend in ViewModel.WordCountTrends)
+                {
+                    <div class="trend-item">
+                        <div class="trend-bar-container">
+                            @{
+                                var maxTrend = ViewModel.WordCountTrends.Any() ? ViewModel.WordCountTrends.Max(t => t.Count) : 0;
+                                var trendHeight = maxTrend > 0 ? (trend.Count * 100 / maxTrend) : 0;
+                            }
+                            <div class="trend-bar" style="height: @trendHeight%">
+                                <span class="trend-value">@trend.Count</span>
+                            </div>
+                        </div>
+                        <div class="trend-date">@trend.Date</div>
                     </div>
-                </div>
-                <div class="pattern-item">
-                    <span class="pattern-icon">📆</span>
-                    <div>
-                        <div class="pattern-label">Most Active Day</div>
-                        <div class="pattern-value">Sunday</div>
-                    </div>
-                </div>
-                <div class="pattern-item">
-                    <span class="pattern-icon">⏱️</span>
-                    <div>
-                        <div class="pattern-label">Avg Writing Time</div>
-                        <div class="pattern-value">12 minutes</div>
-                    </div>
-                </div>
+                }
             </div>
         </div>
     </div>
 </div>
 
+@code {
+    private bool _showAllMissed = false;
+    private DateTime? _filterStart;
+    private DateTime? _filterEnd;
+
+    protected override async Task OnInitializedAsync() 
+    {
+        _filterEnd = DateTime.Today;
+        _filterStart = DateTime.Today.AddDays(-30);
+        await ViewModel.InitializeAsync(_filterStart, _filterEnd);
+    }
+
+    private async Task ReloadAnalytics()
+    {
+        await ViewModel.InitializeAsync(_filterStart, _filterEnd);
+    }
+
+    private void ToggleMissed() => _showAllMissed = !_showAllMissed;
+}
+
 <style>
-    .analytics-container {
-        max-width: 1400px;
-        margin: 0 auto;
-    }
+    .analytics-container { max-width: 1400px; margin: 0 auto; padding: 20px; color: var(--text-main); }
+    .analytics-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 2.5rem; gap: 2rem; }
+    .header-main .subtitle { color: var(--text-muted); font-size: 1rem; margin-top: 0.25rem; }
+    
+    .analytics-filters { display: flex; align-items: flex-end; gap: 1.5rem; padding: 1rem 1.5rem !important; }
+    .filter-group { display: flex; flex-direction: column; gap: 0.25rem; }
+    .filter-group label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: var(--text-muted); }
+    .filter-date { padding: 0.4rem !important; font-size: 0.85rem !important; width: 140px; }
+    .apply-btn { background: var(--primary); color: white; border: none; padding: 0.5rem 1.25rem; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.85rem; height: 36px; }
 
-    .analytics-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 2rem;
-    }
+    .stats-summary-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; margin-bottom: 2.5rem; }
+    .stat-summary-card { text-align: center; padding: 2rem !important; }
+    .stat-summary-card .label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-muted); font-weight: 700; margin-bottom: 0.75rem; display: block; }
+    .stat-summary-card .value { font-size: 1.75rem; font-weight: 800; color: var(--text-main); }
 
-    .analytics-header h1 {
-        font-size: 1.875rem;
-        color: #1f2937;
-    }
+    .analytics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 1.5rem; }
+    .analytics-card { padding: 1.5rem; }
+    .analytics-card.large { grid-column: span 2; }
+    .analytics-card h3 { margin-bottom: 1.5rem; font-size: 1.125rem; color: var(--text-main); border-bottom: 1px solid var(--border); padding-bottom: 0.75rem; }
+    
+    .chart-container { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; }
+    .pie-chart { width: 150px; height: 150px; border-radius: 50%; border: 1px solid var(--border); }
+    .chart-legend { flex: 1; min-width: 200px; }
+    .legend-item { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; font-size: 0.875rem; color: var(--text-main); }
+    .legend-color { width: 12px; height: 12px; border-radius: 2px; flex-shrink: 0; }
+    
+    .streak-stats { display: flex; flex-direction: column; gap: 1.25rem; }
+    .streak-item { display: flex; justify-content: space-between; align-items: center; }
+    .streak-label { color: var(--text-muted); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
+    .streak-value { font-size: 1.5rem; font-weight: 700; color: var(--text-main); }
+    .streak-value.primary { color: var(--primary); }
+    
+    .missed-days-section { margin-top: 1rem; padding-top: 1.25rem; border-top: 1px solid var(--border); }
+    .missed-days-section h4 { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem; letter-spacing: 0.05em; }
+    .missed-days-list { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .missed-day-tag { padding: 0.3rem 0.6rem; background: #fee2e2; color: #b91c1c; border-radius: 6px; font-size: 0.75rem; font-weight: 600; border: 1px solid #fecaca; }
+    .theme-dark .missed-day-tag { background: #450a0a; color: #fca5a5; border-color: #7f1d1d; }
+    .see-more-link { background: none; border: none; color: var(--primary); font-size: 0.75rem; font-weight: 700; cursor: pointer; padding: 0; }
+    
+    .tag-bar-chart-vertical { display: flex; align-items: flex-end; justify-content: space-around; height: 220px; padding-top: 20px; }
+    .v-bar-item { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .v-bar-container { height: 160px; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+    .v-bar { width: 35px; background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%); border-radius: 6px 6px 0 0; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .v-bar-value { position: absolute; top: -25px; width: 100%; text-align: center; font-size: 0.75rem; font-weight: 800; color: var(--text-main); }
+    .v-bar-label { margin-top: 1rem; font-size: 0.75rem; font-weight: 700; color: var(--text-muted); transform: rotate(-15deg); }
 
-    .range-select {
-        padding: 0.625rem 1rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 0.875rem;
-        font-weight: 600;
-        background: white;
-    }
+    .tag-chart-mini { display: flex; flex-direction: column; gap: 1rem; }
+    .mini-tag-item { display: flex; flex-direction: column; gap: 0.4rem; }
+    .mini-tag-info { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 600; color: var(--text-main); }
+    .mini-tag-bar { height: 6px; background: var(--bg-page); border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+    .mini-fill { height: 100%; background: var(--primary); }
 
-    .analytics-grid {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-        gap: 1.5rem;
-    }
-
-    .analytics-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .analytics-card.large {
-        grid-column: span 2;
-    }
-
-    .analytics-card h3 {
-        margin-bottom: 1.5rem;
-        color: #1f2937;
-        font-size: 1.125rem;
-    }
-
-    .chart-container {
-        display: flex;
-        gap: 2rem;
-        align-items: center;
-    }
-
-    .pie-chart {
-        width: 180px;
-        height: 180px;
-        border-radius: 50%;
-        background: conic-gradient(
-            #10b981 0% 60%,
-            #6b7280 60% 85%,
-            #ef4444 85% 100%
-        );
-    }
-
-    .chart-legend {
-        flex: 1;
-    }
-
-    .legend-item {
-        display: flex;
-        align-items: center;
-        gap: 0.75rem;
-        margin-bottom: 0.75rem;
-        font-size: 0.875rem;
-    }
-
-    .legend-color {
-        width: 20px;
-        height: 20px;
-        border-radius: 4px;
-    }
-
-    .positive-bg {
-        background: #10b981;
-    }
-
-    .neutral-bg {
-        background: #6b7280;
-    }
-
-    .negative-bg {
-        background: #ef4444;
-    }
-
-    .mood-stats {
-        text-align: center;
-    }
-
-    .mood-display {
-        margin-bottom: 1.5rem;
-    }
-
-    .big-emoji {
-        font-size: 4rem;
-        display: block;
-        margin-bottom: 0.5rem;
-    }
-
-    .mood-name {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1f2937;
-        margin-bottom: 0.25rem;
-    }
-
-    .mood-count {
-        color: #6b7280;
-        font-size: 0.875rem;
-    }
-
-    .top-moods {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .mini-mood {
-        padding: 0.625rem;
-        background: #f9fafb;
-        border-radius: 6px;
-        font-size: 0.875rem;
-    }
-
-    .streak-stats {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .streak-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .streak-label {
-        color: #6b7280;
-        font-size: 0.875rem;
-    }
-
-    .streak-value {
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: #1f2937;
-    }
-
-    .streak-value.primary {
-        color: #667eea;
-    }
-
-    .streak-value.missed {
-        color: #ef4444;
-    }
-
-    .progress-bar {
-        height: 8px;
-        background: #e5e7eb;
-        border-radius: 4px;
-        overflow: hidden;
-        margin-top: 0.5rem;
-    }
-
-    .progress-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        transition: width 0.3s;
-    }
-
-    .progress-label {
-        text-align: center;
-        font-size: 0.75rem;
-        color: #6b7280;
-        margin-top: 0.5rem;
-    }
-
-    .tag-chart {
-        display: flex;
-        flex-direction: column;
-        gap: 1rem;
-    }
-
-    .tag-bar-item {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .tag-name {
-        min-width: 100px;
-        font-weight: 600;
-        color: #374151;
-    }
-
-    .tag-bar {
-        flex: 1;
-        height: 32px;
-        background: #f3f4f6;
-        border-radius: 6px;
-        overflow: hidden;
-    }
-
-    .bar-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        display: flex;
-        align-items: center;
-        justify-content: flex-end;
-        padding-right: 0.75rem;
-        color: white;
-        font-weight: 600;
-        font-size: 0.875rem;
-        transition: width 0.3s;
-    }
-
-    .category-breakdown {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-    }
-
-    .category-item {
-        display: flex;
-        flex-direction: column;
-        gap: 0.5rem;
-    }
-
-    .category-header {
-        display: flex;
-        justify-content: space-between;
-        font-size: 0.875rem;
-        font-weight: 600;
-        color: #374151;
-    }
-
-    .percentage {
-        color: #667eea;
-    }
-
-    .category-bar {
-        height: 8px;
-        background: #f3f4f6;
-        border-radius: 4px;
-        overflow: hidden;
-    }
-
-    .category-fill {
-        height: 100%;
-        background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-        transition: width 0.3s;
-    }
-
-    .word-count-stats {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 1rem;
-        margin-bottom: 1.5rem;
-    }
-
-    .stat-box {
-        text-align: center;
-        padding: 1rem;
-        background: #f9fafb;
-        border-radius: 8px;
-    }
-
-    .stat-value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #667eea;
-        margin-bottom: 0.25rem;
-    }
-
-    .stat-label {
-        font-size: 0.75rem;
-        color: #6b7280;
-    }
-
-    .line-chart {
-        height: 150px;
-        background: #f9fafb;
-        border-radius: 8px;
-        position: relative;
-    }
-
-    .chart-line {
-        position: absolute;
-        inset: 0;
-    }
-
-    .data-point {
-        position: absolute;
-        width: 12px;
-        height: 12px;
-        background: #667eea;
-        border-radius: 50%;
-        border: 3px solid white;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
-
-    .pattern-stats {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
-    }
-
-    .pattern-item {
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-    }
-
-    .pattern-icon {
-        font-size: 2rem;
-    }
-
-    .pattern-label {
-        font-size: 0.75rem;
-        color: #6b7280;
-        margin-bottom: 0.25rem;
-    }
-
-    .pattern-value {
-        font-weight: 600;
-        color: #1f2937;
-    }
+    .category-breakdown { display: flex; flex-direction: column; gap: 1.5rem; }
+    .category-item { display: flex; flex-direction: column; gap: 0.6rem; }
+    .category-header { display: flex; justify-content: space-between; font-size: 0.85rem; font-weight: 700; color: var(--text-main); }
+    .category-bar { height: 10px; background: var(--bg-page); border-radius: 100px; overflow: hidden; border: 1px solid var(--border); }
+    .category-fill { height: 100%; background: var(--primary); border-radius: 100px; }
+    
+    .trend-chart { display: flex; align-items: flex-end; justify-content: space-around; height: 200px; padding-top: 20px; }
+    .trend-item { display: flex; flex-direction: column; align-items: center; flex: 1; }
+    .trend-bar-container { height: 150px; width: 100%; display: flex; align-items: flex-end; justify-content: center; }
+    .trend-bar { width: 30px; background: linear-gradient(180deg, var(--primary) 0%, var(--accent) 100%); border-radius: 6px 6px 0 0; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+    .trend-value { position: absolute; top: -25px; width: 100%; text-align: center; font-size: 0.75rem; font-weight: 800; color: var(--text-main); }
+    .trend-date { margin-top: 1rem; font-size: 0.7rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
+    .empty-msg { color: var(--text-muted); font-size: 0.9rem; font-style: italic; }
 </style>

@@ -1,0 +1,103 @@
+@page "/login"
+@using TheDigitalJournal.Services
+@inject ISecurityService SecurityService
+@inject NavigationManager Navigation
+
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <span class="lock-icon">🔒</span>
+            <h1>@(_isFirstRun ? "Setup Your PIN" : "Journal Locked")</h1>
+            <p>@(_isFirstRun ? "Create a 4-digit PIN to protect your journal." : "Enter your PIN to access your entries.")</p>
+        </div>
+
+        <div class="pin-display">
+            @for (int i = 0; i < 4; i++)
+            {
+                <div class="pin-dot @(i < _pin.Length ? "filled" : "")"></div>
+            }
+        </div>
+
+        @if (!string.IsNullOrEmpty(_error))
+        {
+            <div class="error-msg">@_error</div>
+        }
+
+        <div class="keypad">
+            @foreach (var num in new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "C", "0", "⌫" })
+            {
+                <button class="key-btn" @onclick="() => OnKeyClick(num)">@num</button>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string _pin = "";
+    private string? _error;
+    private bool _isFirstRun;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _isFirstRun = !await SecurityService.IsPinSetAsync();
+    }
+
+    private async Task OnKeyClick(string key)
+    {
+        _error = null;
+        if (key == "C")
+        {
+            _pin = "";
+        }
+        else if (key == "⌫")
+        {
+            if (_pin.Length > 0) _pin = _pin.Substring(0, _pin.Length - 1);
+        }
+        else if (_pin.Length < 4)
+        {
+            _pin += key;
+            if (_pin.Length == 4)
+            {
+                await SubmitPin();
+            }
+        }
+    }
+
+    private async Task SubmitPin()
+    {
+        bool success;
+        if (_isFirstRun)
+        {
+            success = await SecurityService.SetPinAsync(_pin);
+        }
+        else
+        {
+            success = await SecurityService.AuthenticateAsync(_pin);
+        }
+
+        if (success)
+        {
+            Navigation.NavigateTo("");
+        }
+        else
+        {
+            _error = "Invalid PIN. Please try again.";
+            _pin = "";
+        }
+    }
+}
+
+<style>
+    .login-container { height: 100vh; display: flex; align-items: center; justify-content: center; background: #f5f7fa; }
+    .login-card { background: white; padding: 2.5rem; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); text-align: center; width: 350px; }
+    .lock-icon { font-size: 3rem; margin-bottom: 1rem; display: block; }
+    .login-header h1 { font-size: 1.5rem; margin-bottom: 0.5rem; color: #1f2937; }
+    .login-header p { color: #6b7280; font-size: 0.875rem; margin-bottom: 2rem; }
+    .pin-display { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; }
+    .pin-dot { width: 15px; height: 15px; border-radius: 50%; background: #e5e7eb; transition: background 0.2s; }
+    .pin-dot.filled { background: #667eea; }
+    .keypad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+    .key-btn { height: 60px; border: none; background: #f9fafb; border-radius: 12px; font-size: 1.25rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
+    .key-btn:hover { background: #e5e7eb; }
+    .error-msg { color: #ef4444; font-size: 0.875rem; margin-bottom: 1rem; }
+</style>

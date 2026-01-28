@@ -13,107 +13,100 @@ build_property.EnforceExtendedAnalyzerRules =
 build_property._SupportedPlatformList = Linux,macOS,Windows
 build_property.RootNamespace = TheDigitalJournal
 build_property.RootNamespace = TheDigitalJournal
-build_property.ProjectDir = /Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/
+build_property.ProjectDir = /Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/
 build_property.EnableComHosting = 
 build_property.EnableGeneratedComInterfaceComImportInterop = 
 build_property.RazorLangVersion = 8.0
 build_property.SupportLocalizedComponentNames = 
 build_property.GenerateRazorMetadataSourceChecksumAttributes = 
-build_property.MSBuildProjectDirectory = /Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal
+build_property.MSBuildProjectDirectory = /Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal
 build_property._RazorSourceGeneratorDebug = 
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/App.xaml]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/App.xaml]
 build_metadata.AdditionalFiles.GenKind = Xaml
 build_metadata.AdditionalFiles.ManifestResourceName = TheDigitalJournal.App.xaml
 build_metadata.AdditionalFiles.TargetPath = App.xaml
 build_metadata.AdditionalFiles.RelativePath = App.xaml
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/MainPage.xaml]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/MainPage.xaml]
 build_metadata.AdditionalFiles.GenKind = Xaml
 build_metadata.AdditionalFiles.ManifestResourceName = TheDigitalJournal.MainPage.xaml
 build_metadata.AdditionalFiles.TargetPath = MainPage.xaml
 build_metadata.AdditionalFiles.RelativePath = MainPage.xaml
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/Pages/Analytics.razor]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/Components/Pages/Analytics.razor]
 build_metadata.AdditionalFiles.GenKind = 
 build_metadata.AdditionalFiles.ManifestResourceName = 
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9BbmFseXRpY3MucmF6b3I=
 build_metadata.AdditionalFiles.RelativePath = 
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/Pages/Calendar.razor]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/Components/Pages/Calendar.razor]
 build_metadata.AdditionalFiles.GenKind = 
 build_metadata.AdditionalFiles.ManifestResourceName = 
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9DYWxlbmRhci5yYXpvcg==
 build_metadata.AdditionalFiles.RelativePath = 
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/Pages/Counter.razor]
-build_metadata.AdditionalFiles.GenKind = 
-build_metadata.AdditionalFiles.ManifestResourceName = 
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Db3VudGVyLnJhem9y
-build_metadata.AdditionalFiles.RelativePath = 
-build_metadata.AdditionalFiles.CssScope = 
-
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/Pages/Dashboard.razor]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/Components/Pages/Dashboard.razor]
 build_metadata.AdditionalFiles.GenKind = 
 build_metadata.AdditionalFiles.ManifestResourceName = 
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9EYXNoYm9hcmQucmF6b3I=
 build_metadata.AdditionalFiles.RelativePath = 
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/Pages/Entries.razor]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/Components/Pages/Entries.razor]
 build_metadata.AdditionalFiles.GenKind = 
 build_metadata.AdditionalFiles.ManifestResourceName = 
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9FbnRyaWVzLnJhem9y
 build_metadata.AdditionalFiles.RelativePath = 
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/Pages/Settings.razor]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/Components/Pages/Login.razor]
+build_metadata.AdditionalFiles.GenKind = 
+build_metadata.AdditionalFiles.ManifestResourceName = 
+build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Mb2dpbi5yYXpvcg==
+build_metadata.AdditionalFiles.RelativePath = 
+build_metadata.AdditionalFiles.CssScope = 
+
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/Components/Pages/Settings.razor]
 build_metadata.AdditionalFiles.GenKind = 
 build_metadata.AdditionalFiles.ManifestResourceName = 
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9TZXR0aW5ncy5yYXpvcg==
 build_metadata.AdditionalFiles.RelativePath = 
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/Pages/TodayEntry.razor]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/Components/Pages/TodayEntry.razor]
 build_metadata.AdditionalFiles.GenKind = 
 build_metadata.AdditionalFiles.ManifestResourceName = 
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9Ub2RheUVudHJ5LnJhem9y
 build_metadata.AdditionalFiles.RelativePath = 
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/Pages/Weather.razor]
-build_metadata.AdditionalFiles.GenKind = 
-build_metadata.AdditionalFiles.ManifestResourceName = 
-build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9QYWdlcy9XZWF0aGVyLnJhem9y
-build_metadata.AdditionalFiles.RelativePath = 
-build_metadata.AdditionalFiles.CssScope = 
-
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/Routes.razor]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/Components/Routes.razor]
 build_metadata.AdditionalFiles.GenKind = 
 build_metadata.AdditionalFiles.ManifestResourceName = 
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9Sb3V0ZXMucmF6b3I=
 build_metadata.AdditionalFiles.RelativePath = 
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/_Imports.razor]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/Components/_Imports.razor]
 build_metadata.AdditionalFiles.GenKind = 
 build_metadata.AdditionalFiles.ManifestResourceName = 
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9fSW1wb3J0cy5yYXpvcg==
 build_metadata.AdditionalFiles.RelativePath = 
 build_metadata.AdditionalFiles.CssScope = 
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/Layout/MainLayout.razor]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/Components/Layout/MainLayout.razor]
 build_metadata.AdditionalFiles.GenKind = 
 build_metadata.AdditionalFiles.ManifestResourceName = 
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTWFpbkxheW91dC5yYXpvcg==
 build_metadata.AdditionalFiles.RelativePath = 
 build_metadata.AdditionalFiles.CssScope = b-kwrfig4uvr
 
-[/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/Components/Layout/NavMenu.razor]
+[/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/Components/Layout/NavMenu.razor]
 build_metadata.AdditionalFiles.GenKind = 
 build_metadata.AdditionalFiles.ManifestResourceName = 
 build_metadata.AdditionalFiles.TargetPath = Q29tcG9uZW50cy9MYXlvdXQvTmF2TWVudS5yYXpvcg==

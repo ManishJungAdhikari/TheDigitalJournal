@@ -1,488 +1,266 @@
 @page "/entries"
+@using TheDigitalJournal.ViewModels
+@using TheDigitalJournal.Utils
+@using System.Text.RegularExpressions
+@using Microsoft.Maui.Controls
+@inject EntriesViewModel ViewModel
+@inject NavigationManager Navigation
 
 <div class="entries-container">
     <div class="entries-header">
         <h1>📖 All Entries</h1>
         <div class="header-actions">
-            <input type="text" class="search-box" placeholder="Search entries..." />
-            <button class="filter-btn">🔍 Filters</button>
+            <input type="text" class="search-box" placeholder="Search entries..."
+                   @bind="ViewModel.SearchTerm" @bind:event="oninput" @onkeyup="HandleSearch" />
         </div>
     </div>
 
-    <div class="filter-bar">
-        <div class="filter-section">
-            <label>Date Range:</label>
-            <input type="date" class="date-input" />
-            <span>to</span>
-            <input type="date" class="date-input" />
+    <div class="filter-bar card">
+        <div class="filter-row">
+            <div class="filter-section">
+                <label>Category:</label>
+                <select class="filter-select" @onchange="OnCategoryChanged">
+                    <option value="">All Categories</option>
+                    @foreach (var cat in ViewModel.Categories)
+                    {
+                        <option value="@cat.Id">@cat.Name</option>
+                    }
+                </select>
+            </div>
+
+            <div class="filter-section">
+                <label>From:</label>
+                <input type="date" class="filter-date" @onchange="OnStartDateChanged" />
+            </div>
+
+            <div class="filter-section">
+                <label>To:</label>
+                <input type="date" class="filter-date" @onchange="OnEndDateChanged" />
+            </div>
+            
+            <button class="clear-filters-btn" @onclick="ClearFilters">Clear All</button>
         </div>
 
-        <div class="filter-section">
-            <label>Mood:</label>
-            <select class="filter-select">
-                <option>All Moods</option>
-                <option>Happy</option>
-                <option>Excited</option>
-                <option>Relaxed</option>
-                <option>Sad</option>
-                <option>Stressed</option>
-            </select>
+        <div class="filter-row sub-filter">
+            <label>Moods:</label>
+            <div class="chip-container">
+                @foreach (var mood in ViewModel.Moods)
+                {
+                    <span class="filter-chip mood @(ViewModel.SelectedMoodIds.Contains(mood.Id) ? "active" : "")"
+                          @onclick="() => OnMoodToggled(mood.Id)">
+                        @mood.Icon @mood.Name
+                    </span>
+                }
+            </div>
         </div>
 
-        <div class="filter-section">
+        <div class="filter-row sub-filter">
             <label>Tags:</label>
-            <select class="filter-select">
-                <option>All Tags</option>
-                <option>Work</option>
-                <option>Health</option>
-                <option>Travel</option>
-                <option>Fitness</option>
-            </select>
+            <div class="chip-container">
+                @foreach (var tag in ViewModel.Tags)
+                {
+                    <span class="filter-chip tag @(ViewModel.SelectedTagIds.Contains(tag.Id) ? "active" : "")"
+                          @onclick="() => OnTagToggled(tag.Id)">
+                        @tag.Name
+                    </span>
+                }
+            </div>
         </div>
-
-        <button class="clear-filters-btn">Clear All</button>
     </div>
 
-    <div class="entries-content">
-        <div class="entries-list">
-            <div class="entry-card">
-                <div class="entry-header">
-                    <div class="entry-date-badge">
-                        <div class="badge-day">20</div>
-                        <div class="badge-month">DEC</div>
-                    </div>
-                    <div class="entry-meta">
-                        <h3>Amazing Day at Work</h3>
-                        <p class="entry-timestamp">Friday, December 20, 2025 • 9:30 PM</p>
-                    </div>
-                    <div class="entry-actions">
-                        <button class="action-btn">✏️</button>
-                        <button class="action-btn">🗑️</button>
-                    </div>
-                </div>
+    @if (ViewModel.IsLoading)
+    {
+        <div class="loading-state">Loading entries...</div>
+    }
+    else if (!ViewModel.Entries.Any())
+    {
+        <div class="empty-state">
+            <p>No journal entries found. Start writing today!</p>
+            <a href="/today" class="btn-primary">Write Today's Entry</a>
+        </div>
+    }
+    else
+    {
+        <div class="entries-content">
+            <div class="entries-list">
+                @foreach (var entry in ViewModel.Entries)
+                {
+                    <div class="entry-card card">
+                        <div class="entry-header">
+                            <div class="entry-date-badge">
+                                <div class="badge-day">@entry.Date.Day</div>
+                                <div class="badge-month">@entry.Date.ToString("MMM").ToUpper()</div>
+                            </div>
+                            <div class="entry-meta">
+                                <h3>@(string.IsNullOrWhiteSpace(entry.Title) ? "Untitled Entry" : entry.Title)</h3>
+                                <p class="entry-timestamp">
+                                    Created: @entry.CreatedAt.ToString("MMM dd, yyyy h:mm tt")
+                                    @if (entry.UpdatedAt > entry.CreatedAt.AddSeconds(5))
+                                    {
+                                        <span class="updated-time">• Updated: @entry.UpdatedAt.ToString("MMM dd, yyyy h:mm tt")</span>
+                                    }
+                                </p>
+                            </div>
+                            <div class="entry-actions">
+                                <button class="action-btn" @onclick='() => Navigation.NavigateTo($"/today/{entry.Id}")'>✏️</button>
+                                <button class="action-btn" @onclick="() => DeleteEntry(entry.Id)">🗑️</button>
+                            </div>
+                        </div>
 
-                <div class="entry-body">
-                    <div class="entry-moods">
-                        <span class="mood-tag primary">😊 Happy</span>
-                        <span class="mood-tag">🎉 Excited</span>
+                        <div class="entry-body">
+                            @{
+                                var primaryMood = entry.Moods.FirstOrDefault();
+                                var secondaryMoods = entry.Moods.Skip(1).ToList();
+                            }
+                            <div class="entry-moods">
+                                @if (primaryMood != null)
+                                {
+                                    <span class="mood-tag primary">@primaryMood.Icon @primaryMood.Name</span>
+                                }
+                                @foreach (var sm in secondaryMoods)
+                                {
+                                    <span class="mood-tag">@sm.Icon @sm.Name</span>
+                                }
+                            </div>
+
+                            <div class="entry-full-content">
+                                @((MarkupString)DbConstants.MarkdownToHtml(entry.Content))
+                            </div>
+
+                            <div class="entry-footer-meta">
+                                @if (entry.Category != null)
+                                {
+                                    <span class="category-badge" style="background-color: @entry.Category.ColorHex">@entry.Category.Name</span>
+                                }
+                                <div class="entry-item-tags">
+                                    @foreach(var t in entry.Tags)
+                                    {
+                                        <span class="small-tag">#@t.Name</span>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="entry-footer">
+                            <span class="stat">📝 @GetWordCount(entry.Content) words</span>
+                            <button class="read-more-btn" @onclick='() => Navigation.NavigateTo($"/today/{entry.Id}")'>Edit Details →</button>
+                        </div>
                     </div>
-
-                    <p class="entry-excerpt">
-                        Today was an incredible day at work! I finally completed the project 
-                        I've been working on for the past three weeks. The presentation went 
-                        smoothly, and the team was really impressed with the results. It feels 
-                        amazing to see months of hard work pay off...
-                    </p>
-
-                    <div class="entry-tags">
-                        <span class="tag">Work</span>
-                        <span class="tag">Career</span>
-                        <span class="tag">Productivity</span>
-                    </div>
-                </div>
-
-                <div class="entry-footer">
-                    <span class="stat">📝 485 words</span>
-                    <span class="stat">⏱️ 3 min read</span>
-                    <button class="read-more-btn">Read Full Entry →</button>
-                </div>
-            </div>
-
-            <div class="entry-card">
-                <div class="entry-header">
-                    <div class="entry-date-badge">
-                        <div class="badge-day">19</div>
-                        <div class="badge-month">DEC</div>
-                    </div>
-                    <div class="entry-meta">
-                        <h3>Relaxing Weekend</h3>
-                        <p class="entry-timestamp">Thursday, December 19, 2025 • 8:15 PM</p>
-                    </div>
-                    <div class="entry-actions">
-                        <button class="action-btn">✏️</button>
-                        <button class="action-btn">🗑️</button>
-                    </div>
-                </div>
-
-                <div class="entry-body">
-                    <div class="entry-moods">
-                        <span class="mood-tag primary">😌 Relaxed</span>
-                        <span class="mood-tag">🙏 Grateful</span>
-                    </div>
-
-                    <p class="entry-excerpt">
-                        Spent the day doing absolutely nothing productive, and it was perfect. 
-                        Sometimes we all need these moments to just breathe and recharge. 
-                        Read a book, took a long walk in the park, and cooked a nice dinner...
-                    </p>
-
-                    <div class="entry-tags">
-                        <span class="tag">Self-care</span>
-                        <span class="tag">Reading</span>
-                        <span class="tag">Cooking</span>
-                    </div>
-                </div>
-
-                <div class="entry-footer">
-                    <span class="stat">📝 324 words</span>
-                    <span class="stat">⏱️ 2 min read</span>
-                    <button class="read-more-btn">Read Full Entry →</button>
-                </div>
-            </div>
-
-            <div class="entry-card">
-                <div class="entry-header">
-                    <div class="entry-date-badge">
-                        <div class="badge-day">18</div>
-                        <div class="badge-month">DEC</div>
-                    </div>
-                    <div class="entry-meta">
-                        <h3>Productive Study Session</h3>
-                        <p class="entry-timestamp">Wednesday, December 18, 2025 • 10:00 PM</p>
-                    </div>
-                    <div class="entry-actions">
-                        <button class="action-btn">✏️</button>
-                        <button class="action-btn">🗑️</button>
-                    </div>
-                </div>
-
-                <div class="entry-body">
-                    <div class="entry-moods">
-                        <span class="mood-tag primary">🤔 Thoughtful</span>
-                        <span class="mood-tag">💪 Confident</span>
-                    </div>
-
-                    <p class="entry-excerpt">
-                        Finally got through the difficult chapter I've been putting off. 
-                        The material is starting to make sense now. Took detailed notes 
-                        and made flashcards for the important concepts...
-                    </p>
-
-                    <div class="entry-tags">
-                        <span class="tag">Studies</span>
-                        <span class="tag">Personal Growth</span>
-                    </div>
-                </div>
-
-                <div class="entry-footer">
-                    <span class="stat">📝 267 words</span>
-                    <span class="stat">⏱️ 2 min read</span>
-                    <button class="read-more-btn">Read Full Entry →</button>
-                </div>
+                }
             </div>
         </div>
 
         <div class="pagination">
-            <button class="page-btn" disabled>‹ Previous</button>
+            <button class="page-btn" disabled="@(!ViewModel.HasPreviousPage)" @onclick="() => ViewModel.ChangePageAsync(-1)">‹ Previous</button>
             <div class="page-numbers">
-                <button class="page-num active">1</button>
-                <button class="page-num">2</button>
-                <button class="page-num">3</button>
-                <span>...</span>
-                <button class="page-num">12</button>
+                <span class="page-num active">@ViewModel.CurrentPage of @ViewModel.TotalPages</span>
             </div>
-            <button class="page-btn">Next ›</button>
+            <button class="page-btn" disabled="@(!ViewModel.HasNextPage)" @onclick="() => ViewModel.ChangePageAsync(1)">Next ›</button>
         </div>
-    </div>
+    }
 </div>
 
+@code {
+    protected override async Task OnInitializedAsync() => await ViewModel.InitializeAsync();
+
+    private async Task HandleSearch(KeyboardEventArgs e) => await ViewModel.LoadEntriesAsync();
+
+    private async Task OnCategoryChanged(ChangeEventArgs e)
+    {
+        ViewModel.SelectedCategoryId = int.TryParse(e.Value?.ToString(), out var id) ? id : null;
+        await ViewModel.LoadEntriesAsync();
+    }
+
+    private async Task OnStartDateChanged(ChangeEventArgs e)
+    {
+        ViewModel.StartDate = DateTime.TryParse(e.Value?.ToString(), out var date) ? date : null;
+        await ViewModel.LoadEntriesAsync();
+    }
+
+    private async Task OnEndDateChanged(ChangeEventArgs e)
+    {
+        ViewModel.EndDate = DateTime.TryParse(e.Value?.ToString(), out var date) ? date : null;
+        await ViewModel.LoadEntriesAsync();
+    }
+
+    private async Task OnMoodToggled(int moodId)
+    {
+        ViewModel.ToggleMoodFilter(moodId);
+        await ViewModel.LoadEntriesAsync();
+    }
+
+    private async Task OnTagToggled(int tagId)
+    {
+        ViewModel.ToggleTagFilter(tagId);
+        await ViewModel.LoadEntriesAsync();
+    }
+
+    private async Task ClearFilters()
+    {
+        ViewModel.SearchTerm = null;
+        ViewModel.SelectedMoodIds.Clear();
+        ViewModel.SelectedCategoryId = null;
+        ViewModel.StartDate = null;
+        ViewModel.EndDate = null;
+        ViewModel.SelectedTagIds.Clear();
+        await ViewModel.LoadEntriesAsync();
+    }
+
+    private async Task DeleteEntry(int id)
+    {
+        if (Application.Current?.MainPage != null)
+        {
+            var confirmed = await Application.Current.MainPage.DisplayAlert("Delete Entry", "Are you sure you want to delete this entry?", "Yes", "No");
+            if (confirmed)
+            {
+                await ViewModel.DeleteEntryAsync(id);
+                StateHasChanged();
+            }
+        }
+    }
+
+    private int GetWordCount(string content)
+    {
+        if (string.IsNullOrWhiteSpace(content)) return 0;
+        var clean = Regex.Replace(content, @"([#*_`\[\]\(\)])", "");
+        return clean.Split(new[] { ' ', '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries).Length;
+    }
+}
+
 <style>
-    .entries-container {
-        max-width: 1200px;
-        margin: 0 auto;
-    }
-
-    .entries-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-
-    .entries-header h1 {
-        font-size: 1.875rem;
-        color: #1f2937;
-    }
-
-    .header-actions {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .search-box {
-        padding: 0.625rem 1rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        width: 300px;
-        font-size: 0.875rem;
-    }
-
-    .filter-btn {
-        padding: 0.625rem 1.25rem;
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .filter-btn:hover {
-        background: #f3f4f6;
-    }
-
-    .filter-bar {
-        background: white;
-        padding: 1.25rem;
-        border-radius: 12px;
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        flex-wrap: wrap;
-    }
-
-    .filter-section {
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-
-    .filter-section label {
-        font-weight: 600;
-        font-size: 0.875rem;
-        color: #374151;
-    }
-
-    .date-input, .filter-select {
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 6px;
-        font-size: 0.875rem;
-    }
-
-    .clear-filters-btn {
-        padding: 0.5rem 1rem;
-        background: #f3f4f6;
-        border: none;
-        border-radius: 6px;
-        font-size: 0.875rem;
-        font-weight: 600;
-        cursor: pointer;
-        margin-left: auto;
-    }
-
-    .entries-content {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .entries-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1.5rem;
-    }
-
-    .entry-card {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        transition: all 0.2s;
-    }
-
-    .entry-card:hover {
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transform: translateY(-2px);
-    }
-
-    .entry-header {
-        display: flex;
-        gap: 1rem;
-        margin-bottom: 1rem;
-    }
-
-    .entry-date-badge {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        border-radius: 8px;
-        padding: 0.75rem;
-        text-align: center;
-        min-width: 60px;
-    }
-
-    .badge-day {
-        font-size: 1.5rem;
-        font-weight: 700;
-        line-height: 1;
-    }
-
-    .badge-month {
-        font-size: 0.75rem;
-        font-weight: 600;
-        margin-top: 0.25rem;
-    }
-
-    .entry-meta {
-        flex: 1;
-    }
-
-    .entry-meta h3 {
-        font-size: 1.25rem;
-        color: #1f2937;
-        margin-bottom: 0.25rem;
-    }
-
-    .entry-timestamp {
-        color: #6b7280;
-        font-size: 0.875rem;
-    }
-
-    .entry-actions {
-        display: flex;
-        gap: 0.5rem;
-    }
-
-    .action-btn {
-        width: 36px;
-        height: 36px;
-        border: 1px solid #e5e7eb;
-        background: white;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-size: 1rem;
-    }
-
-    .action-btn:hover {
-        background: #f3f4f6;
-    }
-
-    .entry-body {
-        margin-bottom: 1rem;
-    }
-
-    .entry-moods {
-        display: flex;
-        gap: 0.5rem;
-        margin-bottom: 1rem;
-    }
-
-    .mood-tag {
-        padding: 0.375rem 0.75rem;
-        background: #f3f4f6;
-        border-radius: 6px;
-        font-size: 0.875rem;
-    }
-
-    .mood-tag.primary {
-        background: #d1fae5;
-        color: #065f46;
-        font-weight: 600;
-    }
-
-    .entry-excerpt {
-        line-height: 1.6;
-        color: #374151;
-        margin-bottom: 1rem;
-    }
-
-    .entry-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .tag {
-        padding: 0.375rem 0.75rem;
-        background: #667eea;
-        color: white;
-        border-radius: 20px;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-
-    .entry-footer {
-        display: flex;
-        align-items: center;
-        gap: 1.5rem;
-        padding-top: 1rem;
-        border-top: 1px solid #e5e7eb;
-    }
-
-    .stat {
-        color: #6b7280;
-        font-size: 0.875rem;
-    }
-
-    .read-more-btn {
-        margin-left: auto;
-        padding: 0.5rem 1rem;
-        background: transparent;
-        border: none;
-        color: #667eea;
-        font-weight: 600;
-        cursor: pointer;
-        transition: color 0.2s;
-    }
-
-    .read-more-btn:hover {
-        color: #5568d3;
-    }
-
-    .pagination {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        gap: 1rem;
-        margin-top: 2rem;
-    }
-
-    .page-btn {
-        padding: 0.625rem 1rem;
-        background: white;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .page-btn:hover:not(:disabled) {
-        background: #f3f4f6;
-    }
-
-    .page-btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-    }
-
-    .page-numbers {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-    }
-
-    .page-num {
-        width: 36px;
-        height: 36px;
-        border: 1px solid #e5e7eb;
-        background: white;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: all 0.2s;
-        font-weight: 600;
-    }
-
-    .page-num:hover {
-        background: #f3f4f6;
-    }
-
-    .page-num.active {
-        background: #667eea;
-        color: white;
-        border-color: #667eea;
-    }
+    .entries-container { max-width: 1200px; margin: 0 auto; padding: 20px; color: var(--text-main); }
+    .entries-header h1 { color: var(--text-main); }
+    
+    .filter-bar { padding: 1.25rem; display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.5rem; }
+    .filter-row { display: flex; align-items: center; gap: 1.25rem; flex-wrap: wrap; }
+    .sub-filter { padding-top: 0.5rem; border-top: 1px solid var(--border); }
+    .filter-section label, .filter-row label { font-weight: 600; font-size: 0.875rem; color: var(--text-main); min-width: 70px; }
+    
+    .chip-container { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .filter-chip { padding: 0.3rem 0.75rem; background: var(--bg-page); border: 1px solid var(--border); border-radius: 20px; font-size: 0.75rem; cursor: pointer; color: var(--text-main); }
+    .filter-chip.active.mood { background: #10b981; color: white; border-color: #059669; }
+    .filter-chip.active.tag { background: #667eea; color: white; border-color: #4f46e5; }
+    
+    .clear-filters-btn { padding: 0.5rem 1rem; background: var(--bg-page); border: none; border-radius: 6px; font-size: 0.875rem; font-weight: 600; cursor: pointer; margin-left: auto; color: var(--text-main); }
+    
+    .entries-list { display: flex; flex-direction: column; gap: 1.5rem; }
+    .entry-card { padding: 1.5rem; transition: all 0.2s; }
+    .entry-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+    
+    .entry-header { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .entry-date-badge { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 8px; padding: 0.75rem; text-align: center; min-width: 60px; }
+    .badge-day { font-size: 1.5rem; font-weight: 700; line-height: 1; }
+    .badge-month { font-size: 0.75rem; font-weight: 600; margin-top: 0.25rem; }
+    .entry-meta h3 { font-size: 1.25rem; color: var(--text-main); margin-bottom: 0.25rem; }
+    .entry-timestamp { color: var(--text-muted); font-size: 0.875rem; }
+    .action-btn { width: 36px; height: 36px; border: 1px solid var(--border); background: var(--bg-page); border-radius: 6px; cursor: pointer; color: var(--text-main); }
+    
+    .entry-moods { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .mood-tag { padding: 0.375rem 0.75rem; background: var(--bg-page); border-radius: 6px; font-size: 0.875rem; border: 1px solid var(--border); color: var(--text-main); }
+    .mood-tag.primary { background: #d1fae5; color: #065f46; font-weight: 600; border-color: #a7f3d0; }
+    
+    .entry-full-content { line-height: 1.6; color: var(--text-main); margin-bottom: 1rem; }
+    .small-tag { color: var(--text-muted); font-size: 0.75rem; font-style: italic; }
+    .stat { color: var(--text-muted); font-size: 0.875rem; }
+    .read-more-btn { margin-left: auto; padding: 0.5rem 1rem; background: transparent; border: none; color: #667eea; font-weight: 600; cursor: pointer; }
 </style>

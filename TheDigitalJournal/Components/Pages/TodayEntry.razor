@@ -1,393 +1,220 @@
 @page "/today"
+@page "/today/{Id:int}"
+@using TheDigitalJournal.ViewModels
+@using TheDigitalJournal.Models
+@using TheDigitalJournal.Utils
+@inject JournalEditorViewModel ViewModel
+@inject NavigationManager Navigation
+@inject IJSRuntime JS
 
 <div class="editor-container">
-    <div class="editor-header">
-        <div class="header-info">
-            <h1>Today's Entry</h1>
-            <p class="entry-date">@DateTime.Now.ToString("dddd, MMMM dd, yyyy")</p>
-        </div>
-        <div class="header-actions">
-            <button class="btn-secondary">Cancel</button>
-            <button class="btn-primary">Save Entry</button>
-        </div>
-    </div>
-
-    <div class="editor-content">
-        <div class="main-editor">
-            <div class="title-section">
-                <input type="text" class="entry-title-input" placeholder="Entry Title" />
+    @if (ViewModel.Entry == null)
+    {
+        <div class="loading-state">Initializing...</div>
+    }
+    else
+    {
+        <div class="editor-header">
+            <div class="header-info">
+                <h1>@(Id.HasValue ? "Edit Entry" : "Today's Entry")</h1>
+                <p class="entry-date">@ViewModel.Entry.Date.ToString("dddd, MMMM dd, yyyy")</p>
             </div>
-
-            <div class="toolbar">
-                <button class="tool-btn" title="Bold">
-                    <strong>B</strong>
+            <div class="header-actions">
+                @if (ViewModel.EntryExistsForToday && !Id.HasValue)
+                {
+                    <span class="warning-badge">⚠️ Finalized</span>
+                }
+                <span class="status-msg">@ViewModel.StatusMessage</span>
+                
+                <button class="btn-secondary" @onclick="TogglePreview">
+                    @(_isPreviewMode ? "Edit" : "Preview")
                 </button>
-                <button class="tool-btn" title="Italic">
-                    <em>I</em>
-                </button>
-                <button class="tool-btn" title="Underline">
-                    <u>U</u>
-                </button>
-                <div class="separator"></div>
-                <button class="tool-btn" title="Heading">H1</button>
-                <button class="tool-btn" title="List">☰</button>
-                <button class="tool-btn" title="Link">🔗</button>
-                <div class="separator"></div>
-                <button class="tool-btn" title="Undo">↶</button>
-                <button class="tool-btn" title="Redo">↷</button>
-            </div>
-
-            <div class="text-editor">
-                <textarea 
-                    class="editor-textarea" 
-                    placeholder="Start writing your thoughts...">
-                </textarea>
-            </div>
-
-            <div class="editor-footer">
-                <span class="word-count">0 words</span>
-                <span class="char-count">0 characters</span>
+                
+                @if (!ViewModel.EntryExistsForToday || Id.HasValue)
+                {
+                    <button class="btn-primary" @onclick="SaveEntry">Save Entry</button>
+                }
             </div>
         </div>
 
-        <div class="sidebar-panel">
-            <div class="panel-section">
-                <h3>Primary Mood <span class="required">*</span></h3>
-                <div class="mood-selector">
-                    <div class="mood-category">
-                        <div class="category-label positive-label">Positive</div>
-                        <div class="mood-options">
-                            <button class="mood-btn">😊 Happy</button>
-                            <button class="mood-btn">🎉 Excited</button>
-                            <button class="mood-btn">😌 Relaxed</button>
-                            <button class="mood-btn">🙏 Grateful</button>
-                            <button class="mood-btn">💪 Confident</button>
+        <div class="editor-content">
+            <div class="main-editor card">
+                <input type="text" 
+                       class="entry-title-input" 
+                       placeholder="Entry Title" 
+                       @bind="ViewModel.Entry.Title" 
+                       disabled="@(ViewModel.EntryExistsForToday && !Id.HasValue)" />
+                
+                <div class="editor-toolbar @(_isPreviewMode || (ViewModel.EntryExistsForToday && !Id.HasValue) ? "hidden" : "")">
+                    <button type="button" class="toolbar-btn" @onclick='() => InsertMarkdown("**", "**")' title="Bold"><b>B</b></button>
+                    <button type="button" class="toolbar-btn" @onclick='() => InsertMarkdown("_", "_")' title="Italic"><i>I</i></button>
+                    <button type="button" class="toolbar-btn" @onclick='() => InsertMarkdown("# ", "")' title="Heading">H</button>
+                    <button type="button" class="toolbar-btn" @onclick='() => InsertMarkdown("- ", "")' title="List">• List</button>
+                    <button type="button" class="toolbar-btn" @onclick='() => InsertMarkdown("[", "](https://)")' title="Link">🔗 Link</button>
+                </div>
+
+                <div class="text-editor">
+                    @if (_isPreviewMode)
+                    {
+                        <div class="markdown-preview">
+                            @((MarkupString)DbConstants.MarkdownToHtml(ViewModel.Entry.Content))
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="input-wrapper">
+                            <textarea id="entry-editor" 
+                                      class="editor-textarea" 
+                                      placeholder="Start writing..." 
+                                      @bind="ViewModel.Entry.Content" 
+                                      @bind:event="oninput" 
+                                      disabled="@(ViewModel.EntryExistsForToday && !Id.HasValue)"></textarea>
+                            
+                            @if (ViewModel.EntryExistsForToday && !Id.HasValue)
+                            {
+                                <div class="locked-overlay">
+                                    <p>Today's entry is completed.</p>
+                                    <button class="btn-secondary" @onclick='() => Navigation.NavigateTo("entries")'>View History</button>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="sidebar-panel card">
+                <div class="panel-section">
+                    <h3>Primary Mood</h3>
+                    <div class="mood-options">
+                        @foreach (var mood in ViewModel.Moods)
+                        {
+                            bool isPrimary = ViewModel.Entry.Moods?.Count > 0 && ViewModel.Entry.Moods[0].Id == mood.Id;
+                            <button class="mood-btn @(isPrimary ? "selected" : "")" 
+                                    disabled="@(ViewModel.EntryExistsForToday && !Id.HasValue)"
+                                    @onclick="() => ViewModel.SetPrimaryMood(mood)">
+                                @mood.Icon @mood.Name
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>Secondary Moods</h3>
+                    <div class="mood-options">
+                        @foreach (var mood in ViewModel.Moods)
+                        {
+                            bool isPrimary = ViewModel.Entry.Moods?.Count > 0 && ViewModel.Entry.Moods[0].Id == mood.Id;
+                            bool isSecondary = ViewModel.Entry.Moods?.Skip(1).Any(m => m.Id == mood.Id) == true;
+                            <button class="mood-btn @(isSecondary ? "selected" : "")" 
+                                    disabled="@(isPrimary || (ViewModel.EntryExistsForToday && !Id.HasValue))"
+                                    @onclick="() => ViewModel.ToggleSecondaryMood(mood)">
+                                @mood.Icon @mood.Name
+                            </button>
+                        }
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>Category</h3>
+                    <select class="category-select" @bind="ViewModel.Entry.CategoryId" disabled="@(ViewModel.EntryExistsForToday && !Id.HasValue)">
+                        <option value="">None</option>
+                        @foreach (var category in ViewModel.Categories)
+                        {
+                            <option value="@category.Id">@category.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="panel-section">
+                    <h3>Tags</h3>
+                    <div class="tags-list">
+                        @foreach (var tag in ViewModel.AvailableTags)
+                        {
+                            bool isSelected = ViewModel.Entry.Tags?.Any(t => t.Id == tag.Id) == true;
+                            <span class="tag-chip @(isSelected ? "selected" : "") @(ViewModel.EntryExistsForToday && !Id.HasValue ? "disabled" : "")"
+                                    @onclick="() => { if(!ViewModel.EntryExistsForToday || Id.HasValue) ViewModel.ToggleTag(tag); }">
+                                #@tag.Name
+                            </span>
+                        }
+                    </div>
+                    
+                    <div class="custom-tag-section" style="margin-top: 1rem;">
+                        <div class="custom-tag-input-group">
+                            <input type="text" placeholder="Add custom tag..." @bind="_customTagName" disabled="@(ViewModel.EntryExistsForToday && !Id.HasValue)" />
+                            <button class="add-tag-btn" @onclick="AddCustomTag" disabled="@(ViewModel.EntryExistsForToday && !Id.HasValue)">+</button>
                         </div>
                     </div>
-
-                    <div class="mood-category">
-                        <div class="category-label neutral-label">Neutral</div>
-                        <div class="mood-options">
-                            <button class="mood-btn">😐 Calm</button>
-                            <button class="mood-btn">🤔 Thoughtful</button>
-                            <button class="mood-btn">🧐 Curious</button>
-                            <button class="mood-btn">🌅 Nostalgic</button>
-                            <button class="mood-btn">😑 Bored</button>
-                        </div>
-                    </div>
-
-                    <div class="mood-category">
-                        <div class="category-label negative-label">Negative</div>
-                        <div class="mood-options">
-                            <button class="mood-btn">😢 Sad</button>
-                            <button class="mood-btn">😠 Angry</button>
-                            <button class="mood-btn">😰 Stressed</button>
-                            <button class="mood-btn">😔 Lonely</button>
-                            <button class="mood-btn">😟 Anxious</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <h3>Secondary Moods (Optional)</h3>
-                <p class="helper-text">Select up to 2 additional moods</p>
-                <div class="selected-moods">
-                    <span class="mood-chip">🎉 Excited ×</span>
-                </div>
-            </div>
-
-            <div class="panel-section">
-                <h3>Category</h3>
-                <select class="category-select">
-                    <option>Select a category...</option>
-                    <option>Personal</option>
-                    <option>Work</option>
-                    <option>Health</option>
-                    <option>Relationships</option>
-                    <option>Travel</option>
-                </select>
-            </div>
-
-            <div class="panel-section">
-                <h3>Tags</h3>
-                <input type="text" class="tag-input" placeholder="Add tags..." />
-                <div class="tags-list">
-                    <span class="tag-chip">Work ×</span>
-                    <span class="tag-chip">Productivity ×</span>
-                </div>
-                <div class="suggested-tags">
-                    <span class="suggested-tag">+ Studies</span>
-                    <span class="suggested-tag">+ Fitness</span>
-                    <span class="suggested-tag">+ Reading</span>
                 </div>
             </div>
         </div>
-    </div>
+    }
 </div>
 
+@code {
+    [Parameter] public int? Id { get; set; }
+    private bool _isPreviewMode = false;
+    private string _customTagName = "";
+
+    protected override async Task OnInitializedAsync() => await ViewModel.InitializeAsync(Id);
+    private void TogglePreview() => _isPreviewMode = !_isPreviewMode;
+    private async Task InsertMarkdown(string prefix, string suffix) => await JS.InvokeVoidAsync("editorInterop.insertText", "entry-editor", prefix, suffix);
+
+    private async Task AddCustomTag()
+    {
+        if (string.IsNullOrWhiteSpace(_customTagName)) return;
+        
+        // Use JournalService via VM to create the tag
+        var newTag = await ViewModel.CreateCustomTagAsync(_customTagName);
+        if (newTag != null)
+        {
+            ViewModel.ToggleTag(newTag);
+            _customTagName = "";
+        }
+    }
+
+    private async Task SaveEntry()
+    {
+        if (ViewModel.Entry.Moods == null || ViewModel.Entry.Moods.Count == 0) return;
+        await ViewModel.SaveAsync();
+        if (ViewModel.StatusMessage.Contains("successfully")) { ViewModel.ResetEntry(); Navigation.NavigateTo("entries"); }
+    }
+}
+
 <style>
-    .editor-container {
-        max-width: 1600px;
-        margin: 0 auto;
-        height: calc(100vh - 180px);
-        display: flex;
-        flex-direction: column;
-    }
+    .editor-container { height: 100%; display: flex; flex-direction: column; color: var(--text-main); }
+    .editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .editor-header h1 { font-size: 2rem; color: var(--text-main); }
+    .status-msg { font-size: 0.85rem; color: var(--primary); font-weight: 600; }
+    .warning-badge { background: #fffbeb; color: #92400e; padding: 0.4rem 0.8rem; border-radius: 8px; font-size: 0.8rem; }
+    
+    .editor-content { display: grid; grid-template-columns: 1fr 320px; gap: 2rem; flex: 1; min-height: 0; }
+    .main-editor { display: flex; flex-direction: column; padding: 2rem; }
+    .entry-title-input { width: 100%; border: none !important; border-bottom: 1px solid var(--border) !important; border-radius: 0 !important; font-size: 1.5rem; font-weight: 700; margin-bottom: 1.5rem; background: transparent !important; padding: 0.5rem 0 !important; color: var(--text-main) !important; }
+    .editor-toolbar { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .toolbar-btn { background: var(--bg-page); border: 1px solid var(--border); padding: 0.5rem 1rem; border-radius: 8px; color: var(--text-main); cursor: pointer; }
+    .text-editor { flex: 1; position: relative; display: flex; flex-direction: column; min-height: 0; padding: 1rem; }
+    .editor-textarea { flex: 1; width: 100%; height: 100%; border: none !important; background: transparent !important; resize: none; font-size: 1.1rem; line-height: 1.7; outline: none !important; color: var(--text-main) !important; overflow-y: auto; }
+    .input-wrapper { height: 100%; display: flex; flex-direction: column; flex: 1; position: relative; }
+    .locked-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(var(--bg-page-rgb), 0.8); backdrop-filter: blur(4px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+    .locked-overlay p { color: var(--text-main); font-weight: 600; }
+    .locked-overlay { position: absolute; top: 0; left: 0; right: 0; bottom: 0; background: rgba(var(--bg-page-rgb), 0.8); backdrop-filter: blur(4px); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+    
+    .sidebar-panel { padding: 2rem; overflow-y: auto; }
+    .panel-section { margin-bottom: 2.5rem; }
+    .panel-section h3 { font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 1rem; }
+    .mood-options { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .mood-btn { padding: 0.5rem 0.75rem; border: 1px solid var(--border); background: var(--bg-page); border-radius: 8px; font-size: 0.85rem; cursor: pointer; color: var(--text-main); }
+    .mood-btn.selected { background: var(--primary); color: white; border-color: var(--primary); }
+    
+    .tags-list { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1rem; }
+    .tag-chip { padding: 0.4rem 0.8rem; background: var(--bg-page); border: 1px solid var(--border); border-radius: 100px; font-size: 0.8rem; color: var(--text-secondary); cursor: pointer; }
+    .tag-chip.selected { background: var(--primary); color: white; border-color: var(--primary); }
+    
+    .custom-tag-input-group { display: flex; gap: 0.5rem; }
+    .custom-tag-input-group input { flex: 1; padding: 0.4rem !important; font-size: 0.8rem !important; }
+    .add-tag-btn { width: 32px; height: 32px; background: var(--primary); color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
 
-    .editor-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 1.5rem;
-    }
-
-    .editor-header h1 {
-        font-size: 1.875rem;
-        color: #1f2937;
-        margin-bottom: 0.25rem;
-    }
-
-    .entry-date {
-        color: #6b7280;
-        font-size: 0.875rem;
-    }
-
-    .header-actions {
-        display: flex;
-        gap: 1rem;
-    }
-
-    .btn-secondary, .btn-primary {
-        padding: 0.75rem 1.5rem;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .btn-secondary {
-        background: #f3f4f6;
-        color: #374151;
-    }
-
-    .btn-primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-    }
-
-    .editor-content {
-        display: grid;
-        grid-template-columns: 1fr 350px;
-        gap: 1.5rem;
-        flex: 1;
-        overflow: hidden;
-    }
-
-    .main-editor {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        display: flex;
-        flex-direction: column;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .title-section {
-        margin-bottom: 1rem;
-    }
-
-    .entry-title-input {
-        width: 100%;
-        padding: 0.75rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 1.25rem;
-        font-weight: 600;
-    }
-
-    .toolbar {
-        display: flex;
-        gap: 0.5rem;
-        padding: 0.75rem;
-        background: #f9fafb;
-        border-radius: 8px;
-        margin-bottom: 1rem;
-    }
-
-    .tool-btn {
-        width: 36px;
-        height: 36px;
-        border: none;
-        background: white;
-        border-radius: 6px;
-        cursor: pointer;
-        transition: background 0.2s;
-    }
-
-    .tool-btn:hover {
-        background: #e5e7eb;
-    }
-
-    .separator {
-        width: 1px;
-        background: #d1d5db;
-        margin: 0 0.25rem;
-    }
-
-    .text-editor {
-        flex: 1;
-        overflow: hidden;
-    }
-
-    .editor-textarea {
-        width: 100%;
-        height: 100%;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        padding: 1rem;
-        font-size: 1rem;
-        line-height: 1.6;
-        resize: none;
-        font-family: inherit;
-    }
-
-    .editor-footer {
-        display: flex;
-        justify-content: space-between;
-        padding-top: 0.75rem;
-        margin-top: 0.75rem;
-        border-top: 1px solid #e5e7eb;
-        color: #6b7280;
-        font-size: 0.875rem;
-    }
-
-    .sidebar-panel {
-        background: white;
-        border-radius: 12px;
-        padding: 1.5rem;
-        overflow-y: auto;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
-
-    .panel-section {
-        margin-bottom: 2rem;
-    }
-
-    .panel-section h3 {
-        font-size: 1rem;
-        color: #1f2937;
-        margin-bottom: 1rem;
-    }
-
-    .required {
-        color: #ef4444;
-    }
-
-    .helper-text {
-        font-size: 0.75rem;
-        color: #6b7280;
-        margin-bottom: 0.75rem;
-    }
-
-    .mood-category {
-        margin-bottom: 1rem;
-    }
-
-    .category-label {
-        padding: 0.25rem 0.75rem;
-        border-radius: 4px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        display: inline-block;
-        margin-bottom: 0.5rem;
-    }
-
-    .positive-label {
-        background: #d1fae5;
-        color: #065f46;
-    }
-
-    .neutral-label {
-        background: #dbeafe;
-        color: #1e40af;
-    }
-
-    .negative-label {
-        background: #fee2e2;
-        color: #991b1b;
-    }
-
-    .mood-options {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-
-    .mood-btn {
-        padding: 0.5rem 0.75rem;
-        border: 1px solid #e5e7eb;
-        background: white;
-        border-radius: 6px;
-        font-size: 0.875rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .mood-btn:hover {
-        border-color: #667eea;
-        background: #f5f3ff;
-    }
-
-    .mood-btn.selected {
-        background: #667eea;
-        color: white;
-        border-color: #667eea;
-    }
-
-    .selected-moods, .tags-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-bottom: 0.75rem;
-    }
-
-    .mood-chip, .tag-chip {
-        padding: 0.5rem 0.75rem;
-        background: #f3f4f6;
-        border-radius: 6px;
-        font-size: 0.875rem;
-        cursor: pointer;
-    }
-
-    .category-select, .tag-input {
-        width: 100%;
-        padding: 0.625rem;
-        border: 1px solid #e5e7eb;
-        border-radius: 8px;
-        font-size: 0.875rem;
-    }
-
-    .suggested-tags {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-top: 0.75rem;
-    }
-
-    .suggested-tag {
-        padding: 0.375rem 0.625rem;
-        background: #f9fafb;
-        border: 1px dashed #d1d5db;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-
-    .suggested-tag:hover {
-        background: #f3f4f6;
-        border-color: #667eea;
-    }
+    .category-select { width: 100%; color: var(--text-main); }
+    .markdown-preview { line-height: 1.7; font-size: 1.1rem; color: var(--text-main); }
+    .btn-secondary { background: var(--bg-page); border: 1px solid var(--border); padding: 0.8rem 1.5rem; border-radius: 100px; color: var(--text-main); cursor: pointer; font-weight: 600; }
 </style>

@@ -1,1 +1,1 @@
-/Users/mamataadhikari/.dotnet/packs/Microsoft.NETCore.App.Runtime.AOT.osx-arm64.Cross.maccatalyst-arm64/8.0.22/Sdk/../tools/mono-aot-cross
+/Users/mamataadhikari/.dotnet/packs/Microsoft.NETCore.App.Runtime.AOT.osx-arm64.Cross.maccatalyst-arm64/8.0.23/Sdk/../tools/mono-aot-cross

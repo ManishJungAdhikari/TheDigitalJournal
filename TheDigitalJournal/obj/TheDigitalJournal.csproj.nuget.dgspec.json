@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/TheDigitalJournal.csproj": {}
+    "/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/TheDigitalJournal.csproj": {}
   },
   "projects": {
-    "/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/TheDigitalJournal.csproj": {
+    "/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/TheDigitalJournal.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/TheDigitalJournal.csproj",
+        "projectUniqueName": "/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/TheDigitalJournal.csproj",
         "projectName": "TheDigitalJournal",
-        "projectPath": "/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/TheDigitalJournal.csproj",
+        "projectPath": "/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/TheDigitalJournal.csproj",
         "packagesPath": "/Users/mamataadhikari/.nuget/packages/",
-        "outputPath": "/Users/mamataadhikari/RiderProjects/TheDigitalJournal/TheDigitalJournal/obj/",
+        "outputPath": "/Users/mamataadhikari/Desktop/7th sem/TheDigitalJournal/TheDigitalJournal/obj/",
         "projectStyle": "PackageReference",
         "crossTargeting": true,
         "configFilePaths": [
@@ -55,9 +55,25 @@
         "net8.0-android34.0": {
           "targetAlias": "net8.0-android",
           "dependencies": {
+            "CommunityToolkit.Mvvm": {
+              "target": "Package",
+              "version": "[8.2.2, )"
+            },
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.35, )"
+            },
+            "Markdig": {
+              "target": "Package",
+              "version": "[0.37.0, )"
+            },
             "Microsoft.AspNetCore.Components.WebView.Maui": {
               "target": "Package",
               "version": "[8.0.100, )"
+            },
+            "Microsoft.Data.Sqlite": {
+              "target": "Package",
+              "version": "[8.0.8, )"
             },
             "Microsoft.Extensions.Logging.Debug": {
               "target": "Package",
@@ -102,9 +118,25 @@
         "net8.0-ios18.0": {
           "targetAlias": "net8.0-ios",
           "dependencies": {
+            "CommunityToolkit.Mvvm": {
+              "target": "Package",
+              "version": "[8.2.2, )"
+            },
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.35, )"
+            },
+            "Markdig": {
+              "target": "Package",
+              "version": "[0.37.0, )"
+            },
             "Microsoft.AspNetCore.Components.WebView.Maui": {
               "target": "Package",
               "version": "[8.0.100, )"
+            },
+            "Microsoft.Data.Sqlite": {
+              "target": "Package",
+              "version": "[8.0.8, )"
             },
             "Microsoft.Extensions.Logging.Debug": {
               "target": "Package",
@@ -149,9 +181,25 @@
         "net8.0-maccatalyst18.0": {
           "targetAlias": "net8.0-maccatalyst",
           "dependencies": {
+            "CommunityToolkit.Mvvm": {
+              "target": "Package",
+              "version": "[8.2.2, )"
+            },
+            "Dapper": {
+              "target": "Package",
+              "version": "[2.1.35, )"
+            },
+            "Markdig": {
+              "target": "Package",
+              "version": "[0.37.0, )"
+            },
             "Microsoft.AspNetCore.Components.WebView.Maui": {
               "target": "Package",
               "version": "[8.0.100, )"
+            },
+            "Microsoft.Data.Sqlite": {
+              "target": "Package",
+              "version": "[8.0.8, )"
             },
             "Microsoft.Extensions.Logging.Debug": {
               "target": "Package",
